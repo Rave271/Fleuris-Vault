@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}{{ brand_name }} - Security Center{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <p class="eyebrow">Admin only</p>
+    <h1>Security center</h1>
+    <p class="muted">Recent authentication, transfer, and access-control events.</p>
+    <a class="button secondary" href="{{ url_for('security_log_view') }}">View file-based log</a>
+</section>
+
+<section class="content-panel">
+    {% if events %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Event</th>
+                    <th>User</th>
+                    <th>IP</th>
+                    <th>Detail</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                    <tr>
+                        <td>{{ event["created_at"] }}</td>
+                        <td><span class="event-pill">{{ event["event_type"] }}</span></td>
+                        <td>{{ event["username"] or "Unknown" }}</td>
+                        <td>{{ event["ip_address"] or "N/A" }}</td>
+                        <td>{{ event["detail"] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="muted">No security events have been recorded yet.</p>
+    {% endif %}
+</section>
+{% endblock %}

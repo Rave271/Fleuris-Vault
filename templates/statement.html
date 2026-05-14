@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}{{ brand_name }} - Statement{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <p class="eyebrow">Account statement</p>
+    <h1>{{ account["username"] }} - Account {{ account["id"] }}</h1>
+</section>
+
+<section class="content-panel">
+    {% if transactions %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Amount</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction["id"] }}</td>
+                        <td>{{ transaction["from_user"] }}</td>
+                        <td>{{ transaction["to_user"] }}</td>
+                        <td>${{ "%.2f"|format(transaction["amount"]) }}</td>
+                        <td>{{ transaction["timestamp"] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="muted">No statement activity is available for this account.</p>
+    {% endif %}
+</section>
+{% endblock %}

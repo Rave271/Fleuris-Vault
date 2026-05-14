@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}{{ brand_name }} - Admin Dashboard{% endblock %}
+
+{% block content %}
+<section class="dashboard-header">
+    <div>
+        <p class="eyebrow">Admin dashboard</p>
+        <h1>Welcome, {{ user["username"] }}</h1>
+        <p class="muted">Admin users manage security and customers, but do not have bank accounts.</p>
+    </div>
+    <div class="button-group">
+        <a class="button primary" href="{{ url_for('security_center') }}">Open security center</a>
+        <a class="button secondary" href="{{ url_for('security_log_view') }}">View security log</a>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <article class="stat-card">
+        <span>Customer accounts</span>
+        <strong>{{ customer_count }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Security events</span>
+        <strong>{{ event_count }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Locked customer accounts</span>
+        <strong>{{ locked_count }}</strong>
+    </article>
+</section>
+
+<section class="content-panel">
+    <div class="panel-title">
+        <h2>Recent security events</h2>
+        <a href="{{ url_for('users') }}">View customers</a>
+    </div>
+    {% if recent_events %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Event</th>
+                    <th>Detail</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in recent_events %}
+                    <tr>
+                        <td>{{ event["created_at"] }}</td>
+                        <td><span class="event-pill">{{ event["event_type"] }}</span></td>
+                        <td>{{ event["detail"] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="muted">No security events have been recorded yet.</p>
+    {% endif %}
+</section>
+{% endblock %}

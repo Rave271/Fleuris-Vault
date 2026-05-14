@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}{{ brand_name }} - Security Demo Lab{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <p class="eyebrow">Security Demo Lab</p>
+    <h1>Proof that the system resists common attacks</h1>
+    <p class="muted">
+        Use this page during the project demo to show the attack idea, the system response,
+        and the OWASP-style control that was added.
+    </p>
+</section>
+
+<section class="demo-grid">
+    <article class="demo-card wide-card">
+        <div class="demo-card-title">
+            <span class="demo-number">01</span>
+            <div>
+                <h2>Security Headers</h2>
+                <p class="muted">These are the actual headers configured by the Flask app.</p>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Header</th>
+                    <th>Current value</th>
+                    <th>Attack reduced</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for header in demos["headers"] %}
+                    <tr>
+                        <td><strong>{{ header["name"] }}</strong></td>
+                        <td><code>{{ header["value"] }}</code></td>
+                        <td>{{ header["defense"] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </article>
+
+    <article class="demo-card compact">
+        <div class="demo-card-title">
+            <span class="demo-number">02</span>
+            <div>
+                <h2>SQL Injection</h2>
+                <p class="owasp-tag">{{ demos["sql_injection"]["owasp"] }}</p>
+            </div>
+        </div>
+        <div class="evidence-block">
+            <span>Attack payload</span>
+            <code>{{ demos["sql_injection"]["attack"] }}</code>
+        </div>
+        <div class="evidence-block">
+            <span>Protected query</span>
+            <code>{{ demos["sql_injection"]["current_query"] }}</code>
+        </div>
+        <p class="result success">{{ demos["sql_injection"]["result"] }}</p>
+    </article>
+
+    <article class="demo-card">
+        <div class="demo-card-title">
+            <span class="demo-number">03</span>
+            <div>
+                <h2>Authentication</h2>
+                <p class="owasp-tag">{{ demos["authentication"]["owasp"] }}</p>
+            </div>
+        </div>
+        <p class="muted">
+            Failed logins are counted. At {{ demos["authentication"]["lockout_limit"] }} failures,
+            the account locks for {{ demos["authentication"]["lockout_minutes"] }} minutes.
+        </p>
+        <div class="mini-table">
+            {% for user in demos["authentication"]["users"] %}
+                <div class="mini-row">
+                    <span>{{ user["username"] }} <small>{{ user["role"] }}</small></span>
+                    <code>{{ user["hash_preview"] }}</code>
+                    <strong>{{ user["failed_login_count"] }} failed</strong>
+                </div>
+            {% endfor %}
+        </div>
+        <p class="result success">{{ demos["authentication"]["result"] }}</p>
+    </article>
+
+    <article class="demo-card wide-card">
+        <div class="demo-card-title">
+            <span class="demo-number">04</span>
+            <div>
+                <h2>Access Control</h2>
+                <p class="owasp-tag">Broken Access Control</p>
+            </div>
+        </div>
+        <div class="scenario-list">
+            {% for demo in demos["access_control"] %}
+                <div class="scenario-item">
+                    <code>{{ demo["case"] }}</code>
+                    <strong>{{ demo["result"] }}</strong>
+                    <span>{{ demo["reason"] }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="demo-card">
+        <div class="demo-card-title">
+            <span class="demo-number">05</span>
+            <div>
+                <h2>CSRF Protection</h2>
+                <p class="owasp-tag">{{ demos["csrf"]["owasp"] }}</p>
+            </div>
+        </div>
+        <div class="evidence-block">
+            <span>Attack request</span>
+            <code>{{ demos["csrf"]["attack"] }}</code>
+        </div>
+        <p class="result error">{{ demos["csrf"]["result"] }}</p>
+        <p class="muted">{{ demos["csrf"]["defense"] }}</p>
+    </article>
+
+    <article class="demo-card">
+        <div class="demo-card-title">
+            <span class="demo-number">06</span>
+            <div>
+                <h2>Audit Evidence</h2>
+                <p class="owasp-tag">Security Logging and Monitoring</p>
+            </div>
+        </div>
+        <p class="muted">
+            The admin Security Center records events such as LOGIN_SUCCESS, LOGIN_FAILED,
+            ACCESS_DENIED, CSRF_BLOCKED, and TRANSFER_CREATED.
+        </p>
+        <a class="button secondary" href="{{ url_for('security_center') }}">Open admin security center</a>
+    </article>
+</section>
+{% endblock %}

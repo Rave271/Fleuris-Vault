@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}{{ brand_name }} - Login{% endblock %}
+
+{% block content %}
+<section class="auth-layout">
+    <div>
+        <p class="eyebrow">Member access</p>
+        <h1>Welcome back</h1>
+        <p class="muted">
+            Sign in to manage balances, move funds, and review account activity.
+        </p>
+        <div class="credential-box">
+            <strong>Demo access</strong>
+            <span>Use the accounts provided by the instructor or evaluator.</span>
+            <span>Passwords are not displayed on the login screen.</span>
+        </div>
+    </div>
+
+    <form class="form-card" method="POST">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" autocomplete="username" required>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" required>
+
+        <label for="mfa_code">MFA code (if enabled)</label>
+        <input type="text" id="mfa_code" name="mfa_code" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]*">
+
+        <button type="submit">Login</button>
+
+        {% if error %}
+            <p class="alert error">{{ error }}</p>
+        {% endif %}
+    </form>
+</section>
+{% endblock %}

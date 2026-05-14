@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}{{ brand_name }} - Dashboard{% endblock %}
+
+{% block content %}
+<section class="dashboard-header">
+    <div>
+        <p class="eyebrow">Account dashboard</p>
+        <h1>Hello, {{ user["username"] }}</h1>
+    </div>
+    <a class="button primary" href="{{ url_for('transfer') }}">New transfer</a>
+</section>
+
+<section class="stats-grid">
+    <article class="stat-card">
+        <span>Available balance</span>
+        <strong>${{ "%.2f"|format(user["balance"]) }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Account type</span>
+        <strong>{{ user["role"]|title }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Security posture</span>
+        <strong>Protected</strong>
+    </article>
+</section>
+
+<section class="content-panel">
+    <div class="panel-title">
+        <h2>Recent transactions</h2>
+        <a href="{{ url_for('statement') }}">Full statement</a>
+    </div>
+    {% if transactions %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Amount</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction["id"] }}</td>
+                        <td>{{ transaction["from_user"] }}</td>
+                        <td>{{ transaction["to_user"] }}</td>
+                        <td>${{ "%.2f"|format(transaction["amount"]) }}</td>
+                        <td>{{ transaction["timestamp"] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="muted">No transactions yet.</p>
+    {% endif %}
+</section>
+{% endblock %}

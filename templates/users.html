@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}{{ brand_name }} - Customers{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <p class="eyebrow">Admin only</p>
+    <h1>Customer accounts</h1>
+    <p class="muted">Only customer bank accounts are shown here. Admin users are operational users, not account holders.</p>
+</section>
+
+<section class="content-panel">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Balance</th>
+                <th>Statement</th>
+                <th>Failed logins</th>
+                <th>Locked until</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{{ user["id"] }}</td>
+                    <td>{{ user["username"] }}</td>
+                    <td>${{ "%.2f"|format(user["balance"]) }}</td>
+                    <td><a href="{{ url_for('statement', user_id=user['id']) }}">Review</a></td>
+                    <td>{{ user["failed_login_count"] }}</td>
+                    <td>{{ user["locked_until"] or "Not locked" }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}
