@@ -11,16 +11,17 @@ Use these settings when creating the Render service:
 | Root Directory | `student_folder/grp8/src` |
 | Runtime | Python |
 | Build Command | `pip install -r requirements.txt` |
-| Start Command | `gunicorn app:app --workers 1 --bind 0.0.0.0:$PORT` |
+| Start Command | `gunicorn 'app:create_app()' --workers 1 --bind 0.0.0.0:$PORT` |
 
 The `Procfile` already contains the same start command, so Render can also detect it automatically when the root directory is set correctly.
 
 ## Environment Variables
 
-Set this in Render:
+Set these in Render:
 
 ```text
 AEGIS_SECRET_KEY=<a long random secret value>
+DATABASE_URL=<your postgres connection string>
 ```
 
 Optional:
@@ -43,8 +44,7 @@ Do not commit a real secret key to GitHub.
 
 ## Important Notes
 
-- The app initializes its SQLite tables when `app.py` is imported, so it works under Gunicorn.
-- SQLite on Render's free filesystem is fine for a demo, but data may not be durable like a real managed database.
-- The app uses one Gunicorn worker so the demo session secret and SQLite file stay simple for evaluation.
-- Admins can view the file-based `security.log` at `/security-log` (ephemeral on Render and resets on redeploys).
+- The app initializes PostgreSQL tables on startup via SQLAlchemy `create_all()`.
+- The app uses one Gunicorn worker so the session secret stays simple for evaluation.
+- Admins can view structured JSON logs at `/security-log`.
 

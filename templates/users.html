@@ -9,6 +9,19 @@
     <p class="muted">Only customer bank accounts are shown here. Admin users are operational users, not account holders.</p>
 </section>
 
+<form class="filter-bar" method="GET">
+    <label>
+        Search
+        <input type="search" name="q" value="{{ q }}" placeholder="Username or account ID">
+    </label>
+    <label class="checkbox-row">
+        <input type="checkbox" name="locked_only" value="1" {% if locked_only %}checked{% endif %}>
+        Locked only
+    </label>
+    <button type="submit">Apply filters</button>
+    <a class="button secondary" href="{{ url_for('admin.users') }}">Clear</a>
+</form>
+
 <section class="content-panel">
     <table>
         <thead>
@@ -16,7 +29,8 @@
                 <th>ID</th>
                 <th>Username</th>
                 <th>Balance</th>
-                <th>Statement</th>
+                <th>MFA</th>
+                <th>Review</th>
                 <th>Failed logins</th>
                 <th>Locked until</th>
             </tr>
@@ -27,7 +41,12 @@
                     <td>{{ user["id"] }}</td>
                     <td>{{ user["username"] }}</td>
                     <td>${{ "%.2f"|format(user["balance"]) }}</td>
-                    <td><a href="{{ url_for('statement', user_id=user['id']) }}">Review</a></td>
+                    <td>{{ "Enabled" if user["totp_secret"] else "Off" }}</td>
+                    <td>
+                        <a href="{{ url_for('admin.admin_user_detail', user_id=user['id']) }}">Customer</a>
+                        ·
+                        <a href="{{ url_for('core.statement', user_id=user['id']) }}">Statement</a>
+                    </td>
                     <td>{{ user["failed_login_count"] }}</td>
                     <td>{{ user["locked_until"] or "Not locked" }}</td>
                 </tr>

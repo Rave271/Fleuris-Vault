@@ -8,7 +8,7 @@
         <p class="eyebrow">Account dashboard</p>
         <h1>Hello, {{ user["username"] }}</h1>
     </div>
-    <a class="button primary" href="{{ url_for('transfer') }}">New transfer</a>
+    <a class="button primary" href="{{ url_for('transfer.transfer') }}">New transfer</a>
 </section>
 
 <section class="stats-grid">
@@ -17,28 +17,42 @@
         <strong>${{ "%.2f"|format(user["balance"]) }}</strong>
     </article>
     <article class="stat-card">
-        <span>Account type</span>
-        <strong>{{ user["role"]|title }}</strong>
+        <span>Sent this month</span>
+        <strong>${{ "%.2f"|format(money_sent_month) }}</strong>
     </article>
     <article class="stat-card">
-        <span>Security posture</span>
-        <strong>Protected</strong>
+        <span>Received this month</span>
+        <strong>${{ "%.2f"|format(money_received_month) }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>MFA status</span>
+        <strong>{{ "Enabled" if user["totp_secret"] else "Not enabled" }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Last login</span>
+        <strong class="small-stat">{{ last_login }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Account type</span>
+        <strong>{{ user["role"]|title }}</strong>
     </article>
 </section>
 
 <section class="content-panel">
     <div class="panel-title">
         <h2>Recent transactions</h2>
-        <a href="{{ url_for('statement') }}">Full statement</a>
+        <a href="{{ url_for('core.statement') }}">Full statement</a>
     </div>
     {% if transactions %}
         <table>
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Reference</th>
                     <th>From</th>
                     <th>To</th>
                     <th>Amount</th>
+                    <th>Status</th>
                     <th>Timestamp</th>
                 </tr>
             </thead>
@@ -46,9 +60,11 @@
                 {% for transaction in transactions %}
                     <tr>
                         <td>{{ transaction["id"] }}</td>
+                        <td><code>{{ transaction["reference_code"] }}</code></td>
                         <td>{{ transaction["from_user"] }}</td>
                         <td>{{ transaction["to_user"] }}</td>
                         <td>${{ "%.2f"|format(transaction["amount"]) }}</td>
+                        <td><span class="event-pill">{{ transaction["status"]|title }}</span></td>
                         <td>{{ transaction["timestamp"] }}</td>
                     </tr>
                 {% endfor %}

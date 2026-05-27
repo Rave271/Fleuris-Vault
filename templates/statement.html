@@ -8,25 +8,51 @@
     <h1>{{ account["username"] }} - Account {{ account["id"] }}</h1>
 </section>
 
+<form class="filter-bar" method="GET">
+    <label>
+        From
+        <input type="date" name="date_from" value="{{ filters.date_from }}">
+    </label>
+    <label>
+        To
+        <input type="date" name="date_to" value="{{ filters.date_to }}">
+    </label>
+    <label>
+        Direction
+        <select name="direction">
+            <option value="all" {% if filters.direction == "all" %}selected{% endif %}>All</option>
+            <option value="sent" {% if filters.direction == "sent" %}selected{% endif %}>Sent</option>
+            <option value="received" {% if filters.direction == "received" %}selected{% endif %}>Received</option>
+        </select>
+    </label>
+    <button type="submit">Apply filters</button>
+    <a class="button secondary" href="{{ url_for('core.statement', user_id=account['id']) if current_user and current_user['role'] == 'admin' else url_for('core.statement') }}">Clear</a>
+</form>
+
 <section class="content-panel">
     {% if transactions %}
         <table>
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>From</th>
-                    <th>To</th>
+                    <th>Reference</th>
+                    <th>Description</th>
+                    <th>Direction</th>
                     <th>Amount</th>
+                    <th>Status</th>
                     <th>Timestamp</th>
                 </tr>
             </thead>
             <tbody>
                 {% for transaction in transactions %}
+                    {% set incoming = transaction["to_user_id"] == requested_user_id %}
                     <tr>
-                        <td>{{ transaction["id"] }}</td>
-                        <td>{{ transaction["from_user"] }}</td>
-                        <td>{{ transaction["to_user"] }}</td>
-                        <td>${{ "%.2f"|format(transaction["amount"]) }}</td>
+                        <td><code>{{ transaction["reference_code"] }}</code></td>
+                        <td>{{ transaction["description"] or "Customer transfer" }}</td>
+                        <td>{{ "Received from " ~ transaction["from_user"] if incoming else "Sent to " ~ transaction["to_user"] }}</td>
+                        <td class="{{ 'amount-positive' if incoming else 'amount-negative' }}">
+                            {{ "+" if incoming else "-" }}${{ "%.2f"|format(transaction["amount"]) }}
+                        </td>
+                        <td><span class="event-pill">{{ transaction["status"]|title }}</span></td>
                         <td>{{ transaction["timestamp"] }}</td>
                     </tr>
                 {% endfor %}

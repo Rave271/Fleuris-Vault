@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}{{ brand_name }} - Analytics{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <p class="eyebrow">Admin only</p>
+    <h1>Operational analytics</h1>
+    <p class="muted">Batch analytics from PySpark jobs reading JSON logs in logs/app.json.log.</p>
+</section>
+
+<section class="stats-grid">
+    <article class="stat-card">
+        <span>Total requests</span>
+        <strong>{{ total_requests }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Top endpoints</span>
+        <strong>{{ endpoint_popularity|length }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Login signals</span>
+        <strong>{{ login_summary|length }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Traffic runs</span>
+        <strong>{{ traffic_runs|length }}</strong>
+    </article>
+</section>
+
+<section class="content-panel">
+    <div class="panel-title">
+        <h2>Run analytics jobs</h2>
+    </div>
+    <p class="muted">Triggers the PySpark batch jobs that populate the tables below.</p>
+    <div class="form-actions">
+        <form method="post" action="{{ url_for('analytics.run_analytics_job') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="job" value="all">
+            <button type="submit">Run all jobs</button>
+        </form>
+        <form method="post" action="{{ url_for('analytics.run_analytics_job') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="job" value="endpoint_popularity">
+            <button type="submit">Endpoint popularity</button>
+        </form>
+        <form method="post" action="{{ url_for('analytics.run_analytics_job') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="job" value="login_analytics">
+            <button type="submit">Login analytics</button>
+        </form>
+        <form method="post" action="{{ url_for('analytics.run_analytics_job') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="job" value="response_time_analytics">
+            <button type="submit">Response time analytics</button>
+        </form>
+        <form method="post" action="{{ url_for('analytics.run_analytics_job') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="job" value="user_activity_summary">
+            <button type="submit">User activity summary</button>
+        </form>
+    </div>
+</section>
+
+<section class="content-panel">
+    <div class="panel-title">
+        <h2>Endpoint popularity</h2>
+    </div>
+    {% if endpoint_popularity %}
+        <div class="mini-table">
+            {% for row in endpoint_popularity %}
+                <div class="mini-row">
+                    <div>
+                        <strong>{{ row.endpoint }}</strong>
+                        <small>Last updated {{ row.last_updated }}</small>
+                    </div>
+                    <code>{{ row.endpoint }}</code>
+                    <strong>{{ row.total_hits }}</strong>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="muted">Run the PySpark endpoint popularity job to populate this section.</p>
+    {% endif %}
+</section>
+
+<section class="content-panel">
+    <div class="panel-title">
+        <h2>Login analytics</h2>
+    </div>
+    {% if login_summary %}
+        <div class="mini-table">
+            {% for row in login_summary %}
+                <div class="mini-row">
+                    <div>
+                        <strong>{{ row.event_type }}</strong>
+                        <small>Last updated {{ row.last_updated }}</small>
+                    </div>
+                    <code>{{ row.event_type }}</code>
+                    <strong>{{ row.total_count }}</strong>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="muted">Run the login analytics job to populate this section.</p>
+    {% endif %}
+</section>
+
+<section class="content-panel">
+    <div class="panel-title">
+        <h2>Response time overview</h2>
+    </div>
+    {% if response_times %}
+        <div class="mini-table">
+            {% for row in response_times %}
+                <div class="mini-row">
+                    <div>
+                        <strong>{{ row.endpoint }}</strong>
+                        <small>Last updated {{ row.last_updated }}</small>
+                    </div>
+                    <code>{{ "%.1f"|format(row.avg_response_ms) }} ms avg</code>
+                    <strong>{{ "%.1f"|format(row.p95_response_ms or 0) }} ms p95</strong>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="muted">Run the response time analytics job to populate this section.</p>
+    {% endif %}
+</section>
+
+<section class="content-panel">
+    <div class="panel-title">
+        <h2>Top active users</h2>
+    </div>
+    {% if user_activity %}
+        <div class="mini-table">
+            {% for row in user_activity %}
+                <div class="mini-row">
+                    <div>
+                        <strong>{{ row.username or "Anonymous" }}</strong>
+                        <small>Last seen {{ row.last_seen }}</small>
+                    </div>
+                    <code>User {{ row.user_id or "N/A" }}</code>
+                    <strong>{{ row.total_requests }}</strong>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="muted">Run the user activity summary job to populate this section.</p>
+    {% endif %}
+</section>
+
+<section class="content-panel">
+    <div class="panel-title">
+        <h2>Traffic generation runs</h2>
+    </div>
+    {% if traffic_runs %}
+        <div class="mini-table">
+            {% for run in traffic_runs %}
+                <div class="mini-row">
+                    <div>
+                        <strong>{{ run.scenario|title }}</strong>
+                        <small>Started {{ run.started_at }}</small>
+                    </div>
+                    <code>{{ run.success_events }} success</code>
+                    <strong>{{ run.failed_events }} failed</strong>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="muted">No traffic generator runs recorded yet.</p>
+    {% endif %}
+</section>
+{% endblock %}

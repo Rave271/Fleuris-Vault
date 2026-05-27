@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}{{ brand_name }} - {{ title }}{% endblock %}
+
+{% block content %}
+<section class="content-panel empty-state">
+    <p class="eyebrow">{{ brand_name }}</p>
+    <h1>{{ title }}</h1>
+    <p class="muted">{{ message }}</p>
+    <div class="button-group">
+        <a class="button primary" href="{{ url_for('core.dashboard') if current_user else url_for('core.index') }}">Go back</a>
+        {% if current_user and current_user["role"] == "admin" %}
+            <a class="button secondary" href="{{ url_for('security.security_center') }}">Security center</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

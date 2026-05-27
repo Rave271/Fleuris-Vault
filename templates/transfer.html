@@ -9,8 +9,36 @@
     <p class="muted">Transfers are limited, validated, logged, and tied to your own account.</p>
 </section>
 
+{% if review %}
+    <section class="content-panel review-panel">
+        <div class="panel-title">
+            <h2>Review transfer</h2>
+            <span class="event-pill">Pending confirmation</span>
+        </div>
+        <div class="detail-grid">
+            <span>Recipient</span>
+            <strong>{{ review.recipient }} - Account {{ review.to_account }}</strong>
+            <span>Amount</span>
+            <strong>${{ "%.2f"|format(review.amount) }}</strong>
+            <span>Balance after transfer</span>
+            <strong>${{ "%.2f"|format(review.balance_after) }}</strong>
+            <span>Description</span>
+            <strong>{{ review.description or "Customer transfer" }}</strong>
+        </div>
+        <form class="inline-form" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="action" value="confirm">
+            <input type="hidden" name="to_account" value="{{ review.to_account }}">
+            <input type="hidden" name="amount" value="{{ review.amount }}">
+            <input type="hidden" name="description" value="{{ review.description }}">
+            <button type="submit">Confirm transfer</button>
+            <a class="button secondary" href="{{ url_for('transfer.transfer') }}">Edit details</a>
+        </form>
+    </section>
+{% else %}
 <form class="form-card wide" method="POST">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <input type="hidden" name="action" value="review">
 
     <label for="to_account">Recipient account</label>
     <select id="to_account" name="to_account" required>
@@ -23,10 +51,14 @@
     <label for="amount">Amount</label>
     <input type="number" step="0.01" min="0.01" max="5000" id="amount" name="amount" required>
 
-    <button type="submit">Send transfer</button>
+    <label for="description">Description</label>
+    <input type="text" maxlength="120" id="description" name="description" placeholder="Optional note">
+
+    <button type="submit">Review transfer</button>
 
     {% if message %}
         <p class="alert {{ message_type }}">{{ message }}</p>
     {% endif %}
 </form>
+{% endif %}
 {% endblock %}

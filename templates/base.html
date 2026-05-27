@@ -8,34 +8,46 @@
 </head>
 <body>
     <header class="site-header">
-        <a class="brand" href="{{ url_for('index') }}">
-            <span class="brand-mark" aria-hidden="true">⚜</span>
+        <a class="brand" href="{{ url_for('core.index') }}">
+            <span class="brand-mark" aria-hidden="true">FV</span>
             <span>{{ brand_name }}</span>
         </a>
         <nav class="nav-links" aria-label="Primary navigation">
             {% if current_user %}
-                <a href="{{ url_for('dashboard') }}">Dashboard</a>
-                {% if current_user["role"] != "admin" %}
-                    <a href="{{ url_for('transfer') }}">Transfer</a>
-                    <a href="{{ url_for('statement') }}">Statement</a>
+                <a href="{{ url_for('core.dashboard') }}">Dashboard</a>
+                {% if current_user.role != "admin" %}
+                    <a href="{{ url_for('transfer.transfer') }}">Transfer</a>
+                    <a href="{{ url_for('core.statement') }}">Statement</a>
                 {% endif %}
-                <a href="{{ url_for('security_demo') }}">Demo Lab</a>
-                <a href="{{ url_for('mfa_setup') }}">MFA Setup</a>
-                {% if current_user["role"] == "admin" %}
-                    <a href="{{ url_for('users') }}">Customers</a>
-                    <a href="{{ url_for('security_center') }}">Security</a>
-                    <a href="{{ url_for('security_log_view') }}">Security Log</a>
+                <a href="{{ url_for('security.security_demo') }}">Demo Lab</a>
+                <a href="{{ url_for('auth.mfa_setup') }}">MFA Setup</a>
+                {% if current_user.role == "admin" %}
+                    <a href="{{ url_for('admin.users') }}">Customers</a>
+                    <a href="{{ url_for('security.security_center') }}">Security</a>
+                    <a href="{{ url_for('analytics.analytics_dashboard') }}">Analytics</a>
+                    <a href="{{ url_for('traffic.traffic_generator') }}">Traffic Generator</a>
+                    <a href="{{ url_for('security.demo_controls') }}">Demo Controls</a>
+                    <a href="{{ url_for('security.security_log_view') }}">Security Log</a>
                 {% endif %}
-                <a href="{{ url_for('logout') }}">Logout</a>
+                <a href="{{ url_for('auth.logout') }}">Logout</a>
             {% else %}
-                <a href="{{ url_for('index') }}">Home</a>
-                <a href="{{ url_for('security_demo') }}">Demo Lab</a>
-                <a class="nav-cta" href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('core.index') }}">Home</a>
+                <a href="{{ url_for('security.security_demo') }}">Demo Lab</a>
+                <a class="nav-cta" href="{{ url_for('auth.login') }}">Login</a>
             {% endif %}
         </nav>
     </header>
 
     <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <section class="flash-stack" aria-live="polite">
+                    {% for category, message in messages %}
+                        <p class="alert {{ category }}">{{ message }}</p>
+                    {% endfor %}
+                </section>
+            {% endif %}
+        {% endwith %}
         {% block content %}{% endblock %}
     </main>
 

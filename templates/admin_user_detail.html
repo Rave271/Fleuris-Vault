@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}{{ brand_name }} - {{ customer["username"] }}{% endblock %}
+
+{% block content %}
+<section class="dashboard-header">
+    <div>
+        <p class="eyebrow">Customer review</p>
+        <h1>{{ customer["username"] }} - Account {{ customer["id"] }}</h1>
+        <p class="muted">Admin view for account health, recent activity, and security posture.</p>
+    </div>
+    <div class="button-group">
+        <a class="button secondary" href="{{ url_for('core.statement', user_id=customer['id']) }}">Open statement</a>
+        <a class="button secondary" href="{{ url_for('admin.users') }}">Back to customers</a>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <article class="stat-card">
+        <span>Balance</span>
+        <strong>${{ "%.2f"|format(customer["balance"]) }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>MFA</span>
+        <strong>{{ "Enabled" if customer["totp_secret"] else "Off" }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Failed logins</span>
+        <strong>{{ customer["failed_login_count"] }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Lock status</span>
+        <strong class="small-stat">{{ customer["locked_until"] or "Not locked" }}</strong>
+    </article>
+</section>
+
+<section class="content-panel">
+    <div class="panel-title">
+        <h2>Admin actions</h2>
+    </div>
+    <form class="inline-form" method="POST" action="{{ url_for('admin.admin_unlock_user', user_id=customer['id']) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit">Unlock account</button>
+    </form>
+</section>
+
+<section class="content-panel">
+    <div class="panel-title">
+        <h2>Recent transactions</h2>
+    </div>
+    {% if transactions %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Reference</th>
+                    <th>Description</th>
+                    <th>Direction</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                    {% set incoming = transaction["to_user_id"] == customer["id"] %}
+                    <tr>
+                        <td><code>{{ transaction["reference_code"] }}</code></td>
+                        <td>{{ transaction["description"] or "Customer transfer" }}</td>
+                        <td>{{ "Received from " ~ transaction["from_user"] if incoming else "Sent to " ~ transaction["to_user"] }}</td>
+                        <td class="{{ 'amount-positive' if incoming else 'amount-negative' }}">
+                            {{ "+" if incoming else "-" }}${{ "%.2f"|format(transaction["amount"]) }}
+                        </td>
+                        <td><span class="event-pill">{{ transaction["status"]|title }}</span></td>
+                        <td>{{ transaction["timestamp"] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="muted">No recent transactions for this customer.</p>
+    {% endif %}
+</section>
+
+<section class="content-panel">
+    <div class="panel-title">
+        <h2>Recent security events</h2>
+    </div>
+    {% if events %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Event</th>
+                    <th>IP</th>
+                    <th>Detail</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events %}
+                    <tr>
+                        <td>{{ event["created_at"] }}</td>
+                        <td><span class="event-pill">{{ event["event_type"] }}</span></td>
+                        <td>{{ event["ip_address"] or "N/A" }}</td>
+                        <td>{{ event["detail"] }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="muted">No security events for this customer.</p>
+    {% endif %}
+</section>
+{% endblock %}

@@ -7,16 +7,16 @@
     <p class="eyebrow">Admin only</p>
     <h1>Security log</h1>
     <p class="muted">File-based audit log from the current app instance.</p>
-    <a class="button secondary" href="{{ url_for('security_center') }}">Back to security center</a>
+    <a class="button secondary" href="{{ url_for('security.security_center') }}">Back to security center</a>
 </section>
 
 <section class="content-panel">
     <div class="panel-title">
         <h2>Log output</h2>
         <div class="button-group">
-            <a class="button secondary" href="{{ url_for('security_log_view', lines=requested_lines) }}">Refresh</a>
-            <a class="button secondary" href="{{ url_for('security_log_view', lines=50) }}">Tail 50</a>
-            <a class="button secondary" href="{{ url_for('security_log_view', lines=200) }}">Tail 200</a>
+            <a class="button secondary" href="{{ url_for('security.security_log_view', lines=requested_lines) }}">Refresh</a>
+            <a class="button secondary" href="{{ url_for('security.security_log_view', lines=50) }}">Tail 50</a>
+            <a class="button secondary" href="{{ url_for('security.security_log_view', lines=200) }}">Tail 200</a>
         </div>
     </div>
     {% if log_error %}

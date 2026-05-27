@@ -7,8 +7,28 @@
     <p class="eyebrow">Admin only</p>
     <h1>Security center</h1>
     <p class="muted">Recent authentication, transfer, and access-control events.</p>
-    <a class="button secondary" href="{{ url_for('security_log_view') }}">View file-based log</a>
+    <a class="button secondary" href="{{ url_for('security.security_log_view') }}">View file-based log</a>
 </section>
+
+<form class="filter-bar" method="GET">
+    <label>
+        Search
+        <input type="search" name="q" value="{{ q }}" placeholder="User, IP, or detail">
+    </label>
+    <label>
+        Event type
+        <select name="event_type">
+            <option value="">All events</option>
+            {% for type in event_types %}
+                <option value="{{ type['event_type'] }}" {% if selected_event_type == type['event_type'] %}selected{% endif %}>
+                    {{ type["event_type"] }}
+                </option>
+            {% endfor %}
+        </select>
+    </label>
+    <button type="submit">Apply filters</button>
+    <a class="button secondary" href="{{ url_for('security.security_center') }}">Clear</a>
+</form>
 
 <section class="content-panel">
     {% if events %}

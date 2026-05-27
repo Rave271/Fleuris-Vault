@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}{{ brand_name }} - Traffic Generator{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <p class="eyebrow">Admin only</p>
+    <h1>Traffic generator</h1>
+    <p class="muted">Generate realistic traffic to create log volume, database activity, and analytics output.</p>
+</section>
+
+<section class="content-panel">
+    <div class="panel-title">
+        <h2>Generate traffic</h2>
+    </div>
+    <form class="form-card wide" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label for="scenario">Scenario</label>
+        <select id="scenario" name="scenario">
+            <option value="login">Login traffic</option>
+            <option value="transfer">Transfer activity</option>
+            <option value="mixed" selected>Mixed application traffic</option>
+            <option value="failed_login">Failed login bursts</option>
+            <option value="dashboard">Heavy dashboard usage</option>
+            <option value="random">Randomized traffic simulations</option>
+        </select>
+
+        <label for="events">Event count</label>
+        <input type="number" min="10" max="5000" id="events" name="events" value="100" required>
+
+        <button type="submit">Generate traffic</button>
+    </form>
+</section>
+
+{% if summary %}
+<section class="content-panel">
+    <div class="panel-title">
+        <h2>Generation summary</h2>
+    </div>
+    <div class="scenario-list">
+        <div class="scenario-item">
+            <div>
+                <strong>Scenario</strong>
+                <small>{{ summary.scenario|title }}</small>
+            </div>
+            <div>
+                <strong>Total events</strong>
+                <small>{{ summary.events }}</small>
+            </div>
+            <div>
+                <strong>Success vs failed</strong>
+                <small>{{ summary.success }} success / {{ summary.failed }} failed</small>
+            </div>
+        </div>
+        <div class="scenario-item">
+            <div>
+                <strong>Started</strong>
+                <small>{{ summary.started_at }}</small>
+            </div>
+            <div>
+                <strong>Finished</strong>
+                <small>{{ summary.finished_at }}</small>
+            </div>
+            <div>
+                <strong>Notes</strong>
+                <small>Run PySpark jobs to refresh analytics.</small>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
