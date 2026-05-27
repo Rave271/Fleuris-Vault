@@ -1,22 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}{{ brand_name }} - Secure Digital Banking{% endblock %}
+{% block title %}{{ brand_name }} — Secure Digital Banking{% endblock %}
+{% block description %}Fleuris Vault is a hardened demo banking portal built for security research and OWASP Top 10 walkthroughs.{% endblock %}
 
 {% block content %}
 <section class="hero">
     <div class="hero-copy">
-        <p class="eyebrow">Digital banking demo</p>
+        <p class="eyebrow">OWASP-hardened · PySpark analytics</p>
         <h1>{{ brand_name }}</h1>
         <p class="hero-text">
-            A modern banking portal for everyday transfers, account monitoring,
-            and security-aware customer workflows.
+            A modern fintech demo portal with realistic banking workflows —
+            hardened against injection, broken access control, CSRF, and more.
         </p>
         <div class="hero-actions">
-            <a class="button primary" href="{{ url_for('auth.login') }}">Access account</a>
+            <a class="button" href="{{ url_for('auth.login') }}">Access account →</a>
             <a class="button secondary" href="{{ url_for('security.security_demo') }}">Security demo</a>
             <a class="button secondary" href="#features">View features</a>
         </div>
     </div>
+
     <div class="hero-panel" aria-label="Project security summary">
         <div class="panel-row">
             <span>Reference base</span>
@@ -24,82 +26,117 @@
         </div>
         <div class="panel-row">
             <span>Security controls</span>
-            <strong>6 added</strong>
+            <strong style="color:var(--success);">✓ 6 added</strong>
         </div>
         <div class="panel-row">
-            <span>Demo coverage</span>
-            <strong>5 attacks</strong>
+            <span>OWASP coverage</span>
+            <strong>5 attack demos</strong>
+        </div>
+        <div class="panel-row">
+            <span>Analytics engine</span>
+            <strong>PySpark + PostgreSQL</strong>
+        </div>
+        <div class="panel-row">
+            <span>Logging</span>
+            <strong>JSON → ELK-ready</strong>
         </div>
     </div>
 </section>
 
 <section id="features" class="section-band">
     <div class="section-heading">
-        <p class="eyebrow">Project upgrade</p>
-        <h2>Why this reference project was chosen</h2>
+        <p class="eyebrow">Security controls</p>
+        <h2>What was hardened</h2>
         <p class="muted">
-            This site is built from the original unsafe banking reference project because it already
-            had realistic fintech workflows: login, transfers, account statements, user records,
-            balances, and database-backed transactions. That made it a better OWASP hardening
-            candidate than a smaller password-only or login-only demo.
+            Migrated from a deliberately vulnerable banking app to a production-style
+            architecture with real access controls, audit trails, and session management.
         </p>
     </div>
     <div class="feature-grid">
         <article class="feature-card">
-            <h3>Authentication Hardening</h3>
-            <p>
-                Passwords are now hashed, login queries use parameters, sessions use safer cookie
-                settings, and repeated failed logins trigger temporary account lockout.
+            <p class="eyebrow" style="margin-bottom:8px;">A07 · Authn</p>
+            <h3 style="margin:0 0 8px;font-size:1rem;">Authentication Hardening</h3>
+            <p class="muted" style="margin:0;font-size:0.875rem;">
+                Bcrypt password hashing, parameterised queries, secure cookie flags,
+                account lockout after 5 failed attempts, and optional TOTP MFA.
             </p>
         </article>
         <article class="feature-card">
-            <h3>Access Control</h3>
-            <p>
-                Customers can only view their own statements, admin pages are restricted, and
-                transfers always come from the signed-in user's account.
+            <p class="eyebrow" style="margin-bottom:8px;">A01 · Access Control</p>
+            <h3 style="margin:0 0 8px;font-size:1rem;">Role-Based Access</h3>
+            <p class="muted" style="margin:0;font-size:0.875rem;">
+                Customers can only access their own data. Admin routes check server-side
+                role. Transfers are always scoped to the authenticated user.
             </p>
         </article>
         <article class="feature-card">
-            <h3>Transaction Safety</h3>
-            <p>
-                Transfers now validate recipients and amounts, block self-transfers, include CSRF
-                tokens, and record audit events for review.
+            <p class="eyebrow" style="margin-bottom:8px;">A03 · CSRF</p>
+            <h3 style="margin:0 0 8px;font-size:1rem;">Transaction Safety</h3>
+            <p class="muted" style="margin:0;font-size:0.875rem;">
+                All state-changing forms use CSRF tokens. Transfers validate amount,
+                recipient, and include a confirmation review step.
             </p>
         </article>
         <article class="feature-card">
-            <h3>Security Headers</h3>
-            <p>
-                The app sends practical browser protections including Content Security Policy,
-                X-Frame-Options, X-Content-Type-Options, and Referrer-Policy.
+            <p class="eyebrow" style="margin-bottom:8px;">A05 · Headers</p>
+            <h3 style="margin:0 0 8px;font-size:1rem;">Security Headers</h3>
+            <p class="muted" style="margin:0;font-size:0.875rem;">
+                Content-Security-Policy, X-Frame-Options DENY, X-Content-Type-Options,
+                and Referrer-Policy on every response.
             </p>
         </article>
         <article class="feature-card">
-            <h3>Audit Monitoring</h3>
-            <p>
-                Login successes, failed attempts, blocked access, CSRF failures, and transfers are
-                logged into an admin-only security center.
+            <p class="eyebrow" style="margin-bottom:8px;">A09 · Logging</p>
+            <h3 style="margin:0 0 8px;font-size:1rem;">Audit Monitoring</h3>
+            <p class="muted" style="margin:0;font-size:0.875rem;">
+                Structured JSON logs for every login, transfer, and access denial.
+                Admin security center with event timeline. ELK-stack ready.
             </p>
         </article>
         <article class="feature-card">
-            <h3>Actual Site Experience</h3>
-            <p>
-                The basic demo was redesigned as Fleuris Vault with a proper home page,
-                dashboard, transfer form, statement view, customer admin area, and responsive UI.
+            <p class="eyebrow" style="margin-bottom:8px;">Analytics</p>
+            <h3 style="margin:0 0 8px;font-size:1rem;">PySpark Analytics</h3>
+            <p class="muted" style="margin:0;font-size:0.875rem;">
+                Batch analytics jobs read JSON logs and write endpoint popularity,
+                login summaries, response times, and user activity to PostgreSQL.
             </p>
         </article>
     </div>
 </section>
 
 <section class="section-band">
-        <div class="section-heading">
-            <p class="eyebrow">Demo profile</p>
-            <h2>Prepared for review</h2>
-        </div>
-        <div class="team-grid">
-            <article class="team-card">
-                <strong>Local demo</strong>
-                <span>Banking security walkthrough</span>
-            </article>
-        </div>
+    <div class="section-heading">
+        <p class="eyebrow">Demo access</p>
+        <h2>Try it yourself</h2>
+    </div>
+    <div class="team-grid">
+        <article class="team-card" style="gap:12px;">
+            <span class="badge badge-danger" style="width:fit-content;">Admin</span>
+            <strong style="font-size:1.05rem;">Administrative access</strong>
+            <p class="muted" style="margin:0;font-size:0.875rem;">
+                Manage customers, view security events, run PySpark analytics jobs,
+                and access the full security demo lab.
+            </p>
+            <a class="button secondary" href="{{ url_for('auth.admin_login') }}" style="width:fit-content;margin-top:4px;">Login as admin →</a>
+        </article>
+        <article class="team-card" style="gap:12px;">
+            <span class="badge badge-accent" style="width:fit-content;">Customer</span>
+            <strong style="font-size:1.05rem;">Customer banking</strong>
+            <p class="muted" style="margin:0;font-size:0.875rem;">
+                View account balance, make transfers, review transaction history,
+                and set up TOTP multi-factor authentication.
+            </p>
+            <a class="button secondary" href="{{ url_for('auth.login') }}" style="width:fit-content;margin-top:4px;">Login as customer →</a>
+        </article>
+        <article class="team-card" style="gap:12px;">
+            <span class="badge badge-neutral" style="width:fit-content;">Demo Lab</span>
+            <strong style="font-size:1.05rem;">Security walkthroughs</strong>
+            <p class="muted" style="margin:0;font-size:0.875rem;">
+                Step through live demonstrations of OWASP attacks and defences —
+                no login required for the public demo lab.
+            </p>
+            <a class="button secondary" href="{{ url_for('security.security_demo') }}" style="width:fit-content;margin-top:4px;">Open demo lab →</a>
+        </article>
+    </div>
 </section>
 {% endblock %}

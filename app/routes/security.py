@@ -227,7 +227,6 @@ def demo_controls():
         action = request.form.get("action")
         if action == "seed_transactions":
             from ..services.transfer import make_reference_code
-            from ..models import Transaction
             alex = User.query.filter_by(username="alex").first()
             morgan = User.query.filter_by(username="morgan").first()
             casey = User.query.filter_by(username="casey").first()

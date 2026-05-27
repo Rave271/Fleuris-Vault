@@ -44,6 +44,7 @@ def _run_spark_job(job_key):
     if not os.path.isabs(log_path):
         log_path = os.path.join(repo_root, log_path)
     env["LOG_PATH"] = log_path
+    env["PYSPARK_PYTHON"] = sys.executable
 
     try:
         result = subprocess.run(

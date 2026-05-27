@@ -42,18 +42,49 @@ def login():
         )
 
         if user:
-            session.clear()
-            session.permanent = True
-            session["user_id"] = user.id
-            session["username"] = user.username
-
-            # Role-based redirect
             if user.role == "admin":
-                return redirect(url_for("admin.users"))
-
-            return redirect(url_for("core.dashboard"))
+                error = "Access denied."
+            else:
+                session.clear()
+                session.permanent = True
+                session["user_id"] = user.id
+                session["username"] = user.username
+                return redirect(url_for("core.dashboard"))
 
     return render_template("login.html", error=error)
+
+@auth_bp.route("/admin-login", methods=["GET", "POST"])
+def admin_login():
+    existing_user = login_required()
+    if existing_user:
+        if existing_user.role == "admin":
+            return redirect(url_for("admin.users"))
+        return redirect(url_for("core.dashboard"))
+
+    error = None
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        mfa_code = request.form.get("mfa_code", "").strip()
+
+        user, error = authenticate_user(
+            current_app.logger,
+            username,
+            password,
+            mfa_code
+        )
+
+        if user:
+            if user.role != "admin":
+                error = "Access denied. This portal is for administrators only."
+            else:
+                session.clear()
+                session.permanent = True
+                session["user_id"] = user.id
+                session["username"] = user.username
+                return redirect(url_for("admin.users"))
+
+    return render_template("admin_login.html", error=error)
 
 @auth_bp.route("/mfa-setup", methods=["GET", "POST"])
 def mfa_setup():

@@ -1,36 +1,32 @@
 {% extends "base.html" %}
 
-{% block title %}{{ brand_name }} — Login{% endblock %}
-{% block description %}Sign in to Fleuris Vault to access your account.{% endblock %}
+{% block title %}{{ brand_name }} — Admin Login{% endblock %}
+{% block description %}Secure administrative portal for Fleuris Vault.{% endblock %}
 
 {% block content %}
 <section class="auth-layout">
     <div>
-        <p class="eyebrow">Member access</p>
-        <h1>Welcome back</h1>
+        <p class="eyebrow" style="color:var(--danger);">Restricted access</p>
+        <h1>Administrative Portal</h1>
         <p class="muted">
-            Sign in to manage balances, move funds, and review account activity.
+            Sign in to manage customers, review security events, and run analytics.
         </p>
         <div class="credential-box">
             <strong style="font-size:0.875rem;">Demo credentials</strong>
-            <p class="muted" style="margin:0;font-size:0.82rem;">Click to autofill, or enter manually. MFA code only needed if set up.</p>
+            <p class="muted" style="margin:0;font-size:0.82rem;">Click to autofill the administrator credentials.</p>
             <div class="quickfill-row" style="margin-top:6px;">
-                <button type="button" class="quickfill-btn"
-                    data-quickfill='{"username":"alex","password":"Vivian004"}'>
-                    ⚡ Alex
-                </button>
-                <button type="button" class="quickfill-btn"
-                    data-quickfill='{"username":"jordan","password":"Vivian004"}'>
-                    ⚡ Jordan
+                <button type="button" class="quickfill-btn" style="border-color:var(--danger);color:var(--danger);"
+                    data-quickfill='{"username":"raghav","password":"admin123"}'>
+                    🛡️ Admin (raghav)
                 </button>
             </div>
         </div>
     </div>
 
-    <form class="form-card" method="POST" id="login-form">
-        <label for="username">Username</label>
+    <form class="form-card" method="POST" id="login-form" style="border-top: 4px solid var(--danger);">
+        <label for="username">Admin Username</label>
         <input type="text" id="username" name="username" autocomplete="username" required
-               placeholder="Enter username">
+               placeholder="Enter admin username">
 
         <label for="password">Password</label>
         <div class="input-wrap">
@@ -45,7 +41,7 @@
                autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]*"
                placeholder="6-digit code" maxlength="6">
 
-        <button type="submit" id="login-btn">Sign in →</button>
+        <button type="submit" id="login-btn" style="background:var(--danger);border-color:var(--danger);">Authenticate →</button>
 
         {% if error %}
             <p class="alert error" role="alert">✕ {{ error }}</p>

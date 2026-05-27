@@ -1,147 +1,147 @@
 {% extends "base.html" %}
 
-{% block title %}{{ brand_name }} - Analytics{% endblock %}
+{% block title %}{{ brand_name }} — Analytics{% endblock %}
 
 {% block content %}
 <section class="page-heading">
-    <p class="eyebrow">Admin only</p>
+    <p class="eyebrow">Admin only · PySpark</p>
     <h1>Operational analytics</h1>
-    <p class="muted">Batch analytics from PySpark jobs reading JSON logs in logs/app.json.log.</p>
+    <p class="muted">Batch analytics from PySpark jobs reading structured JSON logs.</p>
 </section>
 
 <section class="stats-grid">
     <article class="stat-card">
         <span>Total requests</span>
-        <strong>{{ total_requests }}</strong>
+        <strong data-countup="{{ total_requests }}">{{ total_requests }}</strong>
     </article>
     <article class="stat-card">
-        <span>Top endpoints</span>
-        <strong>{{ endpoint_popularity|length }}</strong>
+        <span>Endpoints tracked</span>
+        <strong data-countup="{{ endpoint_popularity|length }}">{{ endpoint_popularity|length }}</strong>
     </article>
     <article class="stat-card">
-        <span>Login signals</span>
-        <strong>{{ login_summary|length }}</strong>
+        <span>Login signal types</span>
+        <strong data-countup="{{ login_summary|length }}">{{ login_summary|length }}</strong>
     </article>
     <article class="stat-card">
-        <span>Traffic runs</span>
-        <strong>{{ traffic_runs|length }}</strong>
+        <span>Traffic gen runs</span>
+        <strong data-countup="{{ traffic_runs|length }}">{{ traffic_runs|length }}</strong>
     </article>
 </section>
 
+<!-- Run jobs panel -->
 <section class="content-panel">
     <div class="panel-title">
         <h2>Run analytics jobs</h2>
+        <span class="badge badge-accent">PySpark → PostgreSQL</span>
     </div>
-    <p class="muted">Triggers the PySpark batch jobs that populate the tables below.</p>
+    <p class="muted" style="margin:0 0 14px;">Triggers PySpark batch jobs that read <code>logs/app.json.log</code> and populate the charts below.</p>
     <div class="form-actions">
-        <form method="post" action="{{ url_for('analytics.run_analytics_job') }}">
+        <form method="post" action="{{ url_for('analytics.run_analytics_job') }}" data-spinner style="flex:0 0 auto;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="hidden" name="job" value="all">
-            <button type="submit">Run all jobs</button>
+            <button type="submit" style="background:var(--accent);border-color:var(--accent);">
+                ▶ Run all jobs
+            </button>
         </form>
-        <form method="post" action="{{ url_for('analytics.run_analytics_job') }}">
+        <form method="post" action="{{ url_for('analytics.run_analytics_job') }}" data-spinner>
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="hidden" name="job" value="endpoint_popularity">
-            <button type="submit">Endpoint popularity</button>
+            <button type="submit" class="secondary" style="background:var(--surface);color:var(--text);border-color:var(--line-soft);">Endpoint popularity</button>
         </form>
-        <form method="post" action="{{ url_for('analytics.run_analytics_job') }}">
+        <form method="post" action="{{ url_for('analytics.run_analytics_job') }}" data-spinner>
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="hidden" name="job" value="login_analytics">
-            <button type="submit">Login analytics</button>
+            <button type="submit" class="secondary" style="background:var(--surface);color:var(--text);border-color:var(--line-soft);">Login analytics</button>
         </form>
-        <form method="post" action="{{ url_for('analytics.run_analytics_job') }}">
+        <form method="post" action="{{ url_for('analytics.run_analytics_job') }}" data-spinner>
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="hidden" name="job" value="response_time_analytics">
-            <button type="submit">Response time analytics</button>
+            <button type="submit" class="secondary" style="background:var(--surface);color:var(--text);border-color:var(--line-soft);">Response times</button>
         </form>
-        <form method="post" action="{{ url_for('analytics.run_analytics_job') }}">
+        <form method="post" action="{{ url_for('analytics.run_analytics_job') }}" data-spinner>
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="hidden" name="job" value="user_activity_summary">
-            <button type="submit">User activity summary</button>
+            <button type="submit" class="secondary" style="background:var(--surface);color:var(--text);border-color:var(--line-soft);">User activity</button>
         </form>
     </div>
 </section>
 
+<!-- Endpoint popularity bar chart -->
 <section class="content-panel">
     <div class="panel-title">
         <h2>Endpoint popularity</h2>
+        {% if endpoint_popularity %}
+            <span class="muted" style="font-size:0.82rem;">Top {{ endpoint_popularity|length }} by hits</span>
+        {% endif %}
     </div>
     {% if endpoint_popularity %}
-        <div class="mini-table">
-            {% for row in endpoint_popularity %}
-                <div class="mini-row">
-                    <div>
-                        <strong>{{ row.endpoint }}</strong>
-                        <small>Last updated {{ row.last_updated }}</small>
-                    </div>
-                    <code>{{ row.endpoint }}</code>
-                    <strong>{{ row.total_hits }}</strong>
-                </div>
-            {% endfor %}
+        <div style="position: relative; height: 300px; width: 100%; margin-top: 16px;">
+            <canvas id="endpointChart"></canvas>
         </div>
+        <script>
+            const endpointLabels = [{% for row in endpoint_popularity %}"{{ row.endpoint }}",{% endfor %}];
+            const endpointData = [{% for row in endpoint_popularity %}{{ row.total_hits }},{% endfor %}];
+        </script>
     {% else %}
-        <p class="muted">Run the PySpark endpoint popularity job to populate this section.</p>
+        <p class="muted">Run the endpoint popularity job to populate this chart.</p>
     {% endif %}
 </section>
 
+<!-- Login analytics -->
 <section class="content-panel">
     <div class="panel-title">
         <h2>Login analytics</h2>
     </div>
     {% if login_summary %}
-        <div class="mini-table">
-            {% for row in login_summary %}
-                <div class="mini-row">
-                    <div>
-                        <strong>{{ row.event_type }}</strong>
-                        <small>Last updated {{ row.last_updated }}</small>
-                    </div>
-                    <code>{{ row.event_type }}</code>
-                    <strong>{{ row.total_count }}</strong>
-                </div>
-            {% endfor %}
+        <div style="position: relative; height: 300px; width: 100%; display: flex; justify-content: center; margin-top: 16px;">
+            <canvas id="loginChart"></canvas>
         </div>
+        <script>
+            const loginLabels = [{% for row in login_summary %}"{{ row.event_type }}",{% endfor %}];
+            const loginData = [{% for row in login_summary %}{{ row.total_count }},{% endfor %}];
+        </script>
     {% else %}
         <p class="muted">Run the login analytics job to populate this section.</p>
     {% endif %}
 </section>
 
+<!-- Response times -->
 <section class="content-panel">
     <div class="panel-title">
         <h2>Response time overview</h2>
+        <span class="muted" style="font-size:0.82rem;">avg · p95</span>
     </div>
     {% if response_times %}
-        <div class="mini-table">
-            {% for row in response_times %}
-                <div class="mini-row">
-                    <div>
-                        <strong>{{ row.endpoint }}</strong>
-                        <small>Last updated {{ row.last_updated }}</small>
-                    </div>
-                    <code>{{ "%.1f"|format(row.avg_response_ms) }} ms avg</code>
-                    <strong>{{ "%.1f"|format(row.p95_response_ms or 0) }} ms p95</strong>
-                </div>
-            {% endfor %}
+        <div style="position: relative; height: 300px; width: 100%; margin-top: 16px;">
+            <canvas id="responseChart"></canvas>
         </div>
+        <script>
+            const responseLabels = [{% for row in response_times %}"{{ row.endpoint }}",{% endfor %}];
+            const responseAvg = [{% for row in response_times %}{{ row.avg_response_ms }},{% endfor %}];
+            const responseP95 = [{% for row in response_times %}{{ row.p95_response_ms or 0 }},{% endfor %}];
+        </script>
     {% else %}
         <p class="muted">Run the response time analytics job to populate this section.</p>
     {% endif %}
 </section>
 
+<!-- User activity -->
 <section class="content-panel">
     <div class="panel-title">
         <h2>Top active users</h2>
     </div>
     {% if user_activity %}
-        <div class="mini-table">
+        {% set max_req = user_activity[0].total_requests %}
+        <div class="bar-chart">
             {% for row in user_activity %}
-                <div class="mini-row">
-                    <div>
-                        <strong>{{ row.username or "Anonymous" }}</strong>
-                        <small>Last seen {{ row.last_seen }}</small>
+                <div class="bar-row">
+                    <span class="bar-label">{{ row.username or "Anonymous" }}</span>
+                    <div class="bar-track">
+                        <div class="bar-fill"
+                             data-width="{{ ((row.total_requests / max_req) * 100)|round(1) }}%"
+                             style="width:0"></div>
                     </div>
-                    <code>User {{ row.user_id or "N/A" }}</code>
-                    <strong>{{ row.total_requests }}</strong>
+                    <span class="bar-value">{{ row.total_requests }}</span>
                 </div>
             {% endfor %}
         </div>
@@ -150,25 +150,146 @@
     {% endif %}
 </section>
 
+<!-- Traffic runs -->
 <section class="content-panel">
     <div class="panel-title">
         <h2>Traffic generation runs</h2>
+        <a href="{{ url_for('traffic.traffic_generator') }}">Generate traffic →</a>
     </div>
     {% if traffic_runs %}
-        <div class="mini-table">
-            {% for run in traffic_runs %}
-                <div class="mini-row">
-                    <div>
-                        <strong>{{ run.scenario|title }}</strong>
-                        <small>Started {{ run.started_at }}</small>
-                    </div>
-                    <code>{{ run.success_events }} success</code>
-                    <strong>{{ run.failed_events }} failed</strong>
-                </div>
-            {% endfor %}
-        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Scenario</th>
+                    <th>Started</th>
+                    <th>Success</th>
+                    <th>Failed</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for run in traffic_runs %}
+                    <tr>
+                        <td><strong>{{ run.scenario|title }}</strong></td>
+                        <td style="color:var(--muted);font-size:0.82rem;">
+                            {{ run.started_at.strftime("%d %b, %H:%M") if run.started_at else "—" }}
+                        </td>
+                        <td class="amount-positive">{{ run.success_events }}</td>
+                        <td class="{{ 'amount-negative' if run.failed_events > 0 else '' }}">{{ run.failed_events }}</td>
+                        <td>
+                            {% if run.failed_events == 0 %}
+                                <span class="event-pill success">Clean</span>
+                            {% else %}
+                                <span class="event-pill warning">Partial</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% else %}
         <p class="muted">No traffic generator runs recorded yet.</p>
     {% endif %}
 </section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#f0f0f0' : '#111111';
+    const gridColor = isDark ? '#2a2a2a' : '#e8e8e3';
+
+    Chart.defaults.color = textColor;
+    Chart.defaults.font.family = "'Inter', Arial, sans-serif";
+
+    if (typeof endpointLabels !== 'undefined' && endpointLabels.length > 0) {
+        new Chart(document.getElementById('endpointChart'), {
+            type: 'bar',
+            data: {
+                labels: endpointLabels,
+                datasets: [{
+                    label: 'Total Hits',
+                    data: endpointData,
+                    backgroundColor: 'rgba(91, 82, 232, 0.8)',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { grid: { color: gridColor }, beginAtZero: true }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+
+    if (typeof loginLabels !== 'undefined' && loginLabels.length > 0) {
+        const bgColors = loginLabels.map(l => {
+            if (l.includes('SUCCESS')) return 'rgba(21, 128, 61, 0.8)';
+            if (l.includes('FAIL') || l.includes('LOCK')) return 'rgba(190, 18, 60, 0.8)';
+            return 'rgba(180, 83, 9, 0.8)';
+        });
+        
+        new Chart(document.getElementById('loginChart'), {
+            type: 'doughnut',
+            data: {
+                labels: loginLabels,
+                datasets: [{
+                    data: loginData,
+                    backgroundColor: bgColors,
+                    borderWidth: 1,
+                    borderColor: isDark ? '#1a1a1a' : '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right' }
+                }
+            }
+        });
+    }
+
+    if (typeof responseLabels !== 'undefined' && responseLabels.length > 0) {
+        new Chart(document.getElementById('responseChart'), {
+            type: 'line',
+            data: {
+                labels: responseLabels,
+                datasets: [
+                    {
+                        label: 'Avg Response Time (ms)',
+                        data: responseAvg,
+                        borderColor: 'rgba(91, 82, 232, 1)',
+                        backgroundColor: 'rgba(91, 82, 232, 0.1)',
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'p95 Response Time (ms)',
+                        data: responseP95,
+                        borderColor: 'rgba(190, 18, 60, 1)',
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { grid: { color: gridColor }, beginAtZero: true }
+                }
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

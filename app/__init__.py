@@ -13,6 +13,7 @@ from .services.seed import seed_users
 SECURITY_HEADERS = {
     "Content-Security-Policy": (
         "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
         "style-src 'self'; "
         "img-src 'self' data:; "
         "frame-ancestors 'none'; "

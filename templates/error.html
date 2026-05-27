@@ -1,17 +1,27 @@
 {% extends "base.html" %}
 
-{% block title %}{{ brand_name }} - {{ title }}{% endblock %}
+{% block title %}{{ brand_name }} — {{ title }}{% endblock %}
 
 {% block content %}
-<section class="content-panel empty-state">
-    <p class="eyebrow">{{ brand_name }}</p>
-    <h1>{{ title }}</h1>
-    <p class="muted">{{ message }}</p>
-    <div class="button-group">
-        <a class="button primary" href="{{ url_for('core.dashboard') if current_user else url_for('core.index') }}">Go back</a>
-        {% if current_user and current_user["role"] == "admin" %}
-            <a class="button secondary" href="{{ url_for('security.security_center') }}">Security center</a>
-        {% endif %}
+<div style="display:flex;justify-content:center;">
+    <div class="error-page">
+        <p class="eyebrow">{{ brand_name }}</p>
+        <div class="error-code">
+            {% if "not found" in title|lower %}404
+            {% elif "denied" in title|lower or "permission" in title|lower %}403
+            {% elif "blocked" in title|lower %}400
+            {% else %}⚠{% endif %}
+        </div>
+        <h1>{{ title }}</h1>
+        <p>{{ message }}</p>
+        <div class="button-group" style="justify-content:center;">
+            <a class="button" href="{{ url_for('core.dashboard') if current_user else url_for('core.index') }}">
+                ← Go back
+            </a>
+            {% if current_user and current_user.role == "admin" %}
+                <a class="button secondary" href="{{ url_for('security.security_center') }}">Security center</a>
+            {% endif %}
+        </div>
     </div>
-</section>
+</div>
 {% endblock %}

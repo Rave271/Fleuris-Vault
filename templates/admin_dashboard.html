@@ -1,47 +1,52 @@
 {% extends "base.html" %}
 
-{% block title %}{{ brand_name }} - Admin Dashboard{% endblock %}
+{% block title %}{{ brand_name }} — Admin Dashboard{% endblock %}
 
 {% block content %}
 <section class="dashboard-header">
     <div>
         <p class="eyebrow">Admin dashboard</p>
         <h1>Welcome, {{ user["username"] }}</h1>
-        <p class="muted">Admin users manage security and customers, but do not have bank accounts.</p>
+        <p class="muted">Admin users manage security and customers — no personal bank account.</p>
     </div>
     <div class="button-group">
-        <a class="button primary" href="{{ url_for('security.security_center') }}">Open security center</a>
-        <a class="button secondary" href="{{ url_for('analytics.analytics_dashboard') }}">Open analytics</a>
+        <a class="button" href="{{ url_for('security.security_center') }}">Security center →</a>
+        <a class="button secondary" href="{{ url_for('analytics.analytics_dashboard') }}">Analytics</a>
+        <a class="button secondary" href="{{ url_for('admin.users') }}">Customers</a>
     </div>
 </section>
 
 <section class="stats-grid">
     <article class="stat-card">
         <span>Customer accounts</span>
-        <strong>{{ customer_count }}</strong>
+        <strong data-countup="{{ customer_count }}">{{ customer_count }}</strong>
     </article>
     <article class="stat-card">
         <span>Security events</span>
-        <strong>{{ event_count }}</strong>
+        <strong data-countup="{{ event_count }}">{{ event_count }}</strong>
     </article>
     <article class="stat-card">
-        <span>Locked customer accounts</span>
-        <strong>{{ locked_count }}</strong>
+        <span>Locked accounts</span>
+        <strong data-countup="{{ locked_count }}" style="{{ 'color:var(--danger)' if locked_count > 0 else '' }}">{{ locked_count }}</strong>
     </article>
     <article class="stat-card">
         <span>Transfers today</span>
-        <strong>{{ transfers_today }}</strong>
+        <strong data-countup="{{ transfers_today }}">{{ transfers_today }}</strong>
     </article>
     <article class="stat-card">
         <span>Failed logins today</span>
-        <strong>{{ failed_logins_today }}</strong>
+        <strong data-countup="{{ failed_logins_today }}" style="{{ 'color:var(--warning)' if failed_logins_today > 0 else '' }}">{{ failed_logins_today }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>System status</span>
+        <strong><span class="badge badge-success">● Live</span></strong>
     </article>
 </section>
 
 <section class="content-panel">
     <div class="panel-title">
         <h2>Recent security events</h2>
-        <a href="{{ url_for('admin.users') }}">View customers</a>
+        <a href="{{ url_for('security.security_center') }}">View all →</a>
     </div>
     {% if recent_events %}
         <table>
@@ -54,16 +59,27 @@
             </thead>
             <tbody>
                 {% for event in recent_events %}
+                    {% set et = event["event_type"] %}
                     <tr>
-                        <td>{{ event["created_at"] }}</td>
-                        <td><span class="event-pill">{{ event["event_type"] }}</span></td>
-                        <td>{{ event["detail"] }}</td>
+                        <td style="color:var(--muted);font-size:0.82rem;white-space:nowrap;">
+                            {{ event["created_at"].strftime("%d %b, %H:%M") if event["created_at"] else "—" }}
+                        </td>
+                        <td>
+                            <span class="event-pill
+                                {% if 'SUCCESS' in et or 'UNLOCK' in et %}success
+                                {% elif 'FAIL' in et or 'BLOCK' in et or 'DENY' in et %}danger
+                                {% elif 'LOCK' in et %}warning
+                                {% else %}accent{% endif %}">
+                                {{ et }}
+                            </span>
+                        </td>
+                        <td style="font-size:0.875rem;">{{ event["detail"] }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
     {% else %}
-        <p class="muted">No security events have been recorded yet.</p>
+        <p class="muted">No security events recorded yet.</p>
     {% endif %}
 </section>
 {% endblock %}

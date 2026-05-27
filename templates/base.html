@@ -4,46 +4,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ brand_name }}{% endblock %}</title>
+    <meta name="description" content="{% block description %}Fleuris Vault — a secure demo banking portal with OWASP-hardened controls, PySpark analytics, and full audit logging.{% endblock %}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Apply theme before paint to prevent flash -->
+    <script>
+        (function(){
+            const t = localStorage.getItem('fv-theme');
+            if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        })();
+    </script>
 </head>
 <body>
-    <header class="site-header">
-        <a class="brand" href="{{ url_for('core.index') }}">
+    <header class="site-header" id="site-header">
+        <a class="brand" href="{{ url_for('core.index') }}" aria-label="{{ brand_name }} home">
             <span class="brand-mark" aria-hidden="true">FV</span>
             <span>{{ brand_name }}</span>
         </a>
+
+        <!-- Desktop nav -->
         <nav class="nav-links" aria-label="Primary navigation">
+            {% set path = request.path %}
             {% if current_user %}
-                <a href="{{ url_for('core.dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('core.dashboard') }}" class="{{ 'active' if path == '/dashboard' }}">Dashboard</a>
                 {% if current_user.role != "admin" %}
-                    <a href="{{ url_for('transfer.transfer') }}">Transfer</a>
-                    <a href="{{ url_for('core.statement') }}">Statement</a>
+                    <a href="{{ url_for('transfer.transfer') }}" class="{{ 'active' if path.startswith('/transfer') }}">Transfer</a>
+                    <a href="{{ url_for('core.statement') }}" class="{{ 'active' if path.startswith('/statement') }}">Statement</a>
                 {% endif %}
-                <a href="{{ url_for('security.security_demo') }}">Demo Lab</a>
-                <a href="{{ url_for('auth.mfa_setup') }}">MFA Setup</a>
+                <a href="{{ url_for('security.security_demo') }}" class="{{ 'active' if path.startswith('/security-demo') }}">Demo Lab</a>
+                <a href="{{ url_for('auth.mfa_setup') }}" class="{{ 'active' if path == '/mfa-setup' }}">MFA</a>
                 {% if current_user.role == "admin" %}
-                    <a href="{{ url_for('admin.users') }}">Customers</a>
-                    <a href="{{ url_for('security.security_center') }}">Security</a>
-                    <a href="{{ url_for('analytics.analytics_dashboard') }}">Analytics</a>
-                    <a href="{{ url_for('traffic.traffic_generator') }}">Traffic Generator</a>
-                    <a href="{{ url_for('security.demo_controls') }}">Demo Controls</a>
-                    <a href="{{ url_for('security.security_log_view') }}">Security Log</a>
+                    <a href="{{ url_for('admin.users') }}" class="{{ 'active' if path.startswith('/users') or path.startswith('/admin/users') }}">Customers</a>
+                    <a href="{{ url_for('security.security_center') }}" class="{{ 'active' if path == '/security' }}">Security</a>
+                    <a href="{{ url_for('analytics.analytics_dashboard') }}" class="{{ 'active' if path == '/analytics' }}">Analytics</a>
+                    <a href="{{ url_for('traffic.traffic_generator') }}" class="{{ 'active' if path == '/traffic-generator' }}">Traffic</a>
+                    <a href="{{ url_for('security.demo_controls') }}" class="{{ 'active' if path == '/demo-controls' }}">Controls</a>
                 {% endif %}
                 <a href="{{ url_for('auth.logout') }}">Logout</a>
             {% else %}
-                <a href="{{ url_for('core.index') }}">Home</a>
+                <a href="{{ url_for('core.index') }}" class="{{ 'active' if path == '/' }}">Home</a>
                 <a href="{{ url_for('security.security_demo') }}">Demo Lab</a>
                 <a class="nav-cta" href="{{ url_for('auth.login') }}">Login</a>
             {% endif %}
+            <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
         </nav>
+
+        <!-- Mobile controls -->
+        <div style="display:flex;gap:8px;align-items:center;">
+            <button class="theme-toggle nav-hamburger" id="theme-toggle-mobile" aria-label="Toggle theme" style="display:none;">🌙</button>
+            <button class="nav-hamburger" id="hamburger" aria-label="Open navigation" aria-expanded="false">☰</button>
+        </div>
     </header>
+
+    <!-- Mobile drawer -->
+    <nav class="nav-drawer" id="nav-drawer" aria-label="Mobile navigation">
+        {% set path = request.path %}
+        {% if current_user %}
+            <a href="{{ url_for('core.dashboard') }}" class="{{ 'active' if path == '/dashboard' }}">Dashboard</a>
+            {% if current_user.role != "admin" %}
+                <a href="{{ url_for('transfer.transfer') }}" class="{{ 'active' if path.startswith('/transfer') }}">Transfer</a>
+                <a href="{{ url_for('core.statement') }}" class="{{ 'active' if path.startswith('/statement') }}">Statement</a>
+            {% endif %}
+            <a href="{{ url_for('security.security_demo') }}">Demo Lab</a>
+            <a href="{{ url_for('auth.mfa_setup') }}">MFA Setup</a>
+            {% if current_user.role == "admin" %}
+                <a href="{{ url_for('admin.users') }}">Customers</a>
+                <a href="{{ url_for('security.security_center') }}">Security</a>
+                <a href="{{ url_for('analytics.analytics_dashboard') }}">Analytics</a>
+                <a href="{{ url_for('traffic.traffic_generator') }}">Traffic Generator</a>
+                <a href="{{ url_for('security.demo_controls') }}">Demo Controls</a>
+            {% endif %}
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        {% else %}
+            <a href="{{ url_for('core.index') }}">Home</a>
+            <a href="{{ url_for('security.security_demo') }}">Demo Lab</a>
+            <a href="{{ url_for('auth.login') }}">Login →</a>
+        {% endif %}
+    </nav>
 
     <main>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <section class="flash-stack" aria-live="polite">
                     {% for category, message in messages %}
-                        <p class="alert {{ category }}">{{ message }}</p>
+                        <p class="alert {{ category }}">
+                            {% if category == 'success' %}✓{% elif category == 'error' %}✕{% else %}ℹ{% endif %}
+                            {{ message }}
+                        </p>
                     {% endfor %}
                 </section>
             {% endif %}
@@ -52,8 +98,149 @@
     </main>
 
     <footer class="site-footer">
-        <span>&copy; 2026 {{ brand_name }}</span>
-        <span>Demo fintech portal hardened with OWASP-style controls.</span>
+        <span>© 2026 {{ brand_name }}</span>
+        <span>Demo fintech portal — OWASP-hardened · PySpark analytics · ELK-ready logging</span>
     </footer>
+
+    <script>
+    // ── Theme toggle ──────────────────────────────────────────────────
+    function getTheme() {
+        try { return localStorage.getItem('fv-theme') || 'light'; }
+        catch (e) { return 'light'; }
+    }
+    function applyTheme(t) {
+        document.documentElement.setAttribute('data-theme', t);
+        try { localStorage.setItem('fv-theme', t); } catch (e) {}
+        const icon = t === 'dark' ? '☀️' : '🌙';
+        document.querySelectorAll('.theme-toggle').forEach(b => b.textContent = icon);
+    }
+    applyTheme(getTheme());
+    document.querySelectorAll('.theme-toggle').forEach(btn => {
+        btn.addEventListener('click', () => applyTheme(getTheme() === 'dark' ? 'light' : 'dark'));
+    });
+
+    // ── Mobile hamburger ──────────────────────────────────────────────
+    const ham = document.getElementById('hamburger');
+    const drawer = document.getElementById('nav-drawer');
+    if (ham && drawer) {
+        ham.addEventListener('click', () => {
+            const open = drawer.classList.toggle('open');
+            ham.setAttribute('aria-expanded', open);
+            ham.textContent = open ? '✕' : '☰';
+        });
+    }
+
+    // ── Sticky header shadow ──────────────────────────────────────────
+    const header = document.getElementById('site-header');
+    if (header) {
+        window.addEventListener('scroll', () => {
+            header.classList.toggle('scrolled', window.scrollY > 8);
+        }, { passive: true });
+    }
+
+    // ── Count-up animation ────────────────────────────────────────────
+    function countUp(el) {
+        const raw = el.dataset.countup;
+        if (!raw) return;
+        const isFloat = raw.includes('.');
+        const prefix = el.dataset.prefix || '';
+        const suffix = el.dataset.suffix || '';
+        const target = parseFloat(raw.replace(/[^0-9.-]/g, ''));
+        if (isNaN(target)) return;
+        
+        const duration = 900;
+        let start = null;
+        
+        // Reset to 0 before animating
+        el.textContent = prefix + (isFloat ? (0).toFixed(2) : "0") + suffix;
+
+        function step(now) {
+            if (!start) start = now;
+            const p = Math.min((now - start) / duration, 1);
+            const ease = 1 - Math.pow(1 - p, 3);
+            const val = target * ease;
+            el.textContent = prefix + (isFloat ? val.toFixed(2) : Math.round(val).toLocaleString()) + suffix;
+            if (p < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    }
+
+    const io = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                countUp(e.target);
+                io.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.3 });
+
+    document.querySelectorAll('[data-countup]').forEach(el => io.observe(el));
+
+    // ── Bar chart animate ─────────────────────────────────────────────
+    const barIo = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                e.target.querySelectorAll('.bar-fill[data-width]').forEach(bar => {
+                    setTimeout(() => { bar.style.width = bar.dataset.width; }, 100);
+                });
+                barIo.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.2 });
+
+    document.querySelectorAll('.bar-chart').forEach(c => barIo.observe(c));
+
+    // ── Live search on tables ─────────────────────────────────────────
+    document.querySelectorAll('[data-live-search]').forEach(input => {
+        const target = document.querySelector(input.dataset.liveSearch);
+        if (!target) return;
+        const rows = Array.from(target.querySelectorAll('tbody tr'));
+        input.addEventListener('input', () => {
+            const q = input.value.toLowerCase().trim();
+            rows.forEach(r => {
+                r.style.display = (!q || r.textContent.toLowerCase().includes(q)) ? '' : 'none';
+            });
+        });
+    });
+
+    // ── Demo credential quick-fill ────────────────────────────────────
+    document.querySelectorAll('[data-quickfill]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const data = JSON.parse(btn.dataset.quickfill);
+            Object.entries(data).forEach(([id, val]) => {
+                const el = document.getElementById(id);
+                if (el) { el.value = val; el.dispatchEvent(new Event('input')); }
+            });
+        });
+    });
+
+    // ── Collapsible demo cards ────────────────────────────────────────
+    document.querySelectorAll('.demo-card-header[data-collapse]').forEach(header => {
+        header.addEventListener('click', () => {
+            header.closest('.demo-card').classList.toggle('collapsed');
+        });
+    });
+
+    // ── Run-all-jobs spinner ──────────────────────────────────────────
+    document.querySelectorAll('form[data-spinner]').forEach(form => {
+        form.addEventListener('submit', () => {
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span><span class="btn-label"> Running…</span>';
+            }
+        });
+    });
+
+    // ── Transfer amount formatter ─────────────────────────────────────
+    const amtInput = document.getElementById('amount');
+    const amtPreview = document.getElementById('amount-preview');
+    if (amtInput && amtPreview) {
+        amtInput.addEventListener('input', () => {
+            const v = parseFloat(amtInput.value);
+            amtPreview.textContent = isNaN(v) ? '' : '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2 });
+        });
+    }
+    </script>
 </body>
 </html>

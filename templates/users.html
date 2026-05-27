@@ -1,54 +1,91 @@
 {% extends "base.html" %}
 
-{% block title %}{{ brand_name }} - Customers{% endblock %}
+{% block title %}{{ brand_name }} — Customers{% endblock %}
 
 {% block content %}
 <section class="page-heading">
     <p class="eyebrow">Admin only</p>
     <h1>Customer accounts</h1>
-    <p class="muted">Only customer bank accounts are shown here. Admin users are operational users, not account holders.</p>
+    <p class="muted">Only customer accounts are shown here. Admin users are operational and not account holders.</p>
 </section>
 
-<form class="filter-bar" method="GET">
+<form class="filter-bar" method="GET" id="filter-form">
     <label>
         Search
-        <input type="search" name="q" value="{{ q }}" placeholder="Username or account ID">
+        <input type="search" name="q" value="{{ q }}" placeholder="Username or account ID"
+               id="server-search">
     </label>
     <label class="checkbox-row">
         <input type="checkbox" name="locked_only" value="1" {% if locked_only %}checked{% endif %}>
         Locked only
     </label>
-    <button type="submit">Apply filters</button>
+    <button type="submit">Apply</button>
     <a class="button secondary" href="{{ url_for('admin.users') }}">Clear</a>
 </form>
 
+<!-- Client-side live search bar -->
+<div class="search-bar-wrap" style="margin-bottom:12px;">
+    <span class="search-bar-icon" aria-hidden="true">🔍</span>
+    <input type="search" id="live-search"
+           data-live-search="#users-table"
+           placeholder="Filter table instantly…"
+           style="max-width:340px;">
+</div>
+
 <section class="content-panel">
-    <table>
+    <div class="panel-title">
+        <h2>{{ users|length }} customer{{ 's' if users|length != 1 }}</h2>
+        {% if locked_only %}
+            <span class="badge badge-danger">Locked filter active</span>
+        {% endif %}
+    </div>
+    <table id="users-table">
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Username</th>
                 <th>Balance</th>
                 <th>MFA</th>
-                <th>Review</th>
+                <th>Status</th>
                 <th>Failed logins</th>
-                <th>Locked until</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for user in users %}
-                <tr>
-                    <td>{{ user["id"] }}</td>
-                    <td>{{ user["username"] }}</td>
-                    <td>${{ "%.2f"|format(user["balance"]) }}</td>
-                    <td>{{ "Enabled" if user["totp_secret"] else "Off" }}</td>
+                <tr class="{{ 'row-danger' if user['locked_until'] else '' }}">
+                    <td style="color:var(--muted);font-size:0.82rem;">#{{ user["id"] }}</td>
+                    <td><strong>{{ user["username"] }}</strong></td>
+                    <td class="amount-positive">${{ "%.2f"|format(user["balance"]) }}</td>
                     <td>
-                        <a href="{{ url_for('admin.admin_user_detail', user_id=user['id']) }}">Customer</a>
-                        ·
-                        <a href="{{ url_for('core.statement', user_id=user['id']) }}">Statement</a>
+                        {% if user["totp_secret"] %}
+                            <span class="badge badge-success">✓ MFA</span>
+                        {% else %}
+                            <span class="badge badge-neutral">Off</span>
+                        {% endif %}
                     </td>
-                    <td>{{ user["failed_login_count"] }}</td>
-                    <td>{{ user["locked_until"] or "Not locked" }}</td>
+                    <td>
+                        {% if user["locked_until"] %}
+                            <span class="event-pill danger">🔒 Locked</span>
+                        {% else %}
+                            <span class="event-pill success">Active</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user["failed_login_count"] > 0 %}
+                            <span style="color:var(--warning);font-weight:700;">{{ user["failed_login_count"] }}</span>
+                        {% else %}
+                            <span class="muted">0</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            <a class="button secondary" href="{{ url_for('admin.admin_user_detail', user_id=user['id']) }}"
+                               style="min-height:32px;padding:4px 10px;font-size:0.8rem;">Detail</a>
+                            <a class="button secondary" href="{{ url_for('core.statement', user_id=user['id']) }}"
+                               style="min-height:32px;padding:4px 10px;font-size:0.8rem;">Statement</a>
+                        </div>
+                    </td>
                 </tr>
             {% endfor %}
         </tbody>
