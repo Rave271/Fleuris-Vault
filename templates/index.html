@@ -1,104 +1,103 @@
 {% extends "base.html" %}
 
 {% block title %}{{ brand_name }} — Secure Digital Banking{% endblock %}
-{% block description %}Fleuris Vault is a hardened demo banking portal built for security research and OWASP Top 10 walkthroughs.{% endblock %}
+{% block description %}Fleuris Vault — fast, secure digital banking. Move money, track spending, and stay protected.{% endblock %}
 
 {% block content %}
 <section class="hero">
     <div class="hero-copy">
-        <p class="eyebrow">OWASP-hardened · PySpark analytics</p>
+        <p class="eyebrow">Personal Banking · Secured</p>
         <h1>{{ brand_name }}</h1>
         <p class="hero-text">
-            A modern fintech demo portal with realistic banking workflows —
-            hardened against injection, broken access control, CSRF, and more.
+            Fast, secure digital banking. Move money, track your spending,
+            and stay protected — all in one place.
         </p>
         <div class="hero-actions">
-            <a class="button" href="{{ url_for('auth.login') }}">Access account →</a>
-            <a class="button secondary" href="{{ url_for('security.security_demo') }}">Security demo</a>
-            <a class="button secondary" href="#features">View features</a>
+            <a class="button" href="{{ url_for('auth.login') }}">Access your account →</a>
+            <a class="button secondary" href="#features">See what's included</a>
         </div>
     </div>
 
-    <div class="hero-panel" aria-label="Project security summary">
+    <div class="hero-panel" aria-label="Platform status">
         <div class="panel-row">
-            <span>Reference base</span>
-            <strong>unsafe_banking</strong>
+            <span>Platform status</span>
+            <strong style="color:var(--success);">● All systems operational</strong>
         </div>
         <div class="panel-row">
-            <span>Security controls</span>
-            <strong style="color:var(--success);">✓ 6 added</strong>
+            <span>Transfer security</span>
+            <strong>CSRF-protected · Signed</strong>
         </div>
         <div class="panel-row">
-            <span>OWASP coverage</span>
-            <strong>5 attack demos</strong>
+            <span>Authentication</span>
+            <strong>Password + TOTP MFA</strong>
         </div>
         <div class="panel-row">
-            <span>Analytics engine</span>
-            <strong>PySpark + PostgreSQL</strong>
+            <span>Audit logging</span>
+            <strong>Every event recorded</strong>
         </div>
         <div class="panel-row">
-            <span>Logging</span>
-            <strong>JSON → ELK-ready</strong>
+            <span>Encryption</span>
+            <strong>TLS · Bcrypt hashing</strong>
         </div>
     </div>
 </section>
 
 <section id="features" class="section-band">
     <div class="section-heading">
-        <p class="eyebrow">Security controls</p>
-        <h2>What was hardened</h2>
+        <p class="eyebrow">Built for you</p>
+        <h2>Everything you need, nothing you don't</h2>
         <p class="muted">
-            Migrated from a deliberately vulnerable banking app to a production-style
-            architecture with real access controls, audit trails, and session management.
+            Fleuris Vault gives you real control over your money with
+            a clean, secure interface and a full audit trail.
         </p>
     </div>
     <div class="feature-grid">
         <article class="feature-card">
-            <p class="eyebrow" style="margin-bottom:8px;">A07 · Authn</p>
-            <h3 style="margin:0 0 8px;font-size:1rem;">Authentication Hardening</h3>
+            <p class="eyebrow" style="margin-bottom:8px;">Transfers</p>
+            <h3 style="margin:0 0 8px;font-size:1rem;">Instant Payments</h3>
             <p class="muted" style="margin:0;font-size:0.875rem;">
-                Bcrypt password hashing, parameterised queries, secure cookie flags,
-                account lockout after 5 failed attempts, and optional TOTP MFA.
+                Send money to any Fleuris account instantly. Every transfer
+                goes through a review step with a signed reference code.
             </p>
         </article>
         <article class="feature-card">
-            <p class="eyebrow" style="margin-bottom:8px;">A01 · Access Control</p>
-            <h3 style="margin:0 0 8px;font-size:1rem;">Role-Based Access</h3>
+            <p class="eyebrow" style="margin-bottom:8px;">Statements</p>
+            <h3 style="margin:0 0 8px;font-size:1rem;">Full Transaction History</h3>
             <p class="muted" style="margin:0;font-size:0.875rem;">
-                Customers can only access their own data. Admin routes check server-side
-                role. Transfers are always scoped to the authenticated user.
+                Filter by date range or direction. Download a CSV export
+                of your complete account history at any time.
             </p>
         </article>
         <article class="feature-card">
-            <p class="eyebrow" style="margin-bottom:8px;">A03 · CSRF</p>
-            <h3 style="margin:0 0 8px;font-size:1rem;">Transaction Safety</h3>
+            <p class="eyebrow" style="margin-bottom:8px;">Security</p>
+            <h3 style="margin:0 0 8px;font-size:1rem;">Two-Factor Authentication</h3>
             <p class="muted" style="margin:0;font-size:0.875rem;">
-                All state-changing forms use CSRF tokens. Transfers validate amount,
-                recipient, and include a confirmation review step.
+                Protect your account with TOTP-based MFA. Lockout after
+                failed attempts. Every login is logged and audited.
             </p>
         </article>
         <article class="feature-card">
-            <p class="eyebrow" style="margin-bottom:8px;">A05 · Headers</p>
-            <h3 style="margin:0 0 8px;font-size:1rem;">Security Headers</h3>
+            <p class="eyebrow" style="margin-bottom:8px;">Insights</p>
+            <h3 style="margin:0 0 8px;font-size:1rem;">Spending Overview</h3>
             <p class="muted" style="margin:0;font-size:0.875rem;">
-                Content-Security-Policy, X-Frame-Options DENY, X-Content-Type-Options,
-                and Referrer-Policy on every response.
+                See your sent and received totals at a glance. Your dashboard
+                shows monthly spending trends and recent activity.
             </p>
         </article>
         <article class="feature-card">
-            <p class="eyebrow" style="margin-bottom:8px;">A09 · Logging</p>
-            <h3 style="margin:0 0 8px;font-size:1rem;">Audit Monitoring</h3>
+            <p class="eyebrow" style="margin-bottom:8px;">Receipts</p>
+            <h3 style="margin:0 0 8px;font-size:1rem;">Transfer Receipts</h3>
             <p class="muted" style="margin:0;font-size:0.875rem;">
-                Structured JSON logs for every login, transfer, and access denial.
-                Admin security center with event timeline. ELK-stack ready.
+                Every completed transfer generates a printable receipt with a
+                unique reference code for your records.
             </p>
         </article>
         <article class="feature-card">
-            <p class="eyebrow" style="margin-bottom:8px;">Analytics</p>
-            <h3 style="margin:0 0 8px;font-size:1rem;">PySpark Analytics</h3>
+            <p class="eyebrow" style="margin-bottom:8px;">Privacy</p>
+            <h3 style="margin:0 0 8px;font-size:1rem;">Account Isolation</h3>
             <p class="muted" style="margin:0;font-size:0.875rem;">
-                Batch analytics jobs read JSON logs and write endpoint popularity,
-                login summaries, response times, and user activity to PostgreSQL.
+                Your data is strictly scoped to your account. No cross-account
+                data exposure. Role-based access enforced at every route.
             </p>
         </article>
     </div>
@@ -106,36 +105,27 @@
 
 <section class="section-band">
     <div class="section-heading">
-        <p class="eyebrow">Demo access</p>
-        <h2>Try it yourself</h2>
+        <p class="eyebrow">Get started</p>
+        <h2>Access your account</h2>
     </div>
     <div class="team-grid">
         <article class="team-card" style="gap:12px;">
-            <span class="badge badge-danger" style="width:fit-content;">Admin</span>
-            <strong style="font-size:1.05rem;">Administrative access</strong>
+            <span class="badge badge-accent" style="width:fit-content;">Personal Banking</span>
+            <strong style="font-size:1.05rem;">Customer Access</strong>
             <p class="muted" style="margin:0;font-size:0.875rem;">
-                Manage customers, view security events, run PySpark analytics jobs,
-                and access the full security demo lab.
+                View your balance, make transfers, download statements,
+                and manage your account security.
             </p>
-            <a class="button secondary" href="{{ url_for('auth.admin_login') }}" style="width:fit-content;margin-top:4px;">Login as admin →</a>
+            <a class="button secondary" href="{{ url_for('auth.login') }}" style="width:fit-content;margin-top:4px;">Sign in →</a>
         </article>
         <article class="team-card" style="gap:12px;">
-            <span class="badge badge-accent" style="width:fit-content;">Customer</span>
-            <strong style="font-size:1.05rem;">Customer banking</strong>
+            <span class="badge badge-neutral" style="width:fit-content;">New to Fleuris?</span>
+            <strong style="font-size:1.05rem;">Secure by default</strong>
             <p class="muted" style="margin:0;font-size:0.875rem;">
-                View account balance, make transfers, review transaction history,
-                and set up TOTP multi-factor authentication.
+                All accounts are protected with bcrypt hashing, session isolation,
+                and optional two-factor authentication.
             </p>
-            <a class="button secondary" href="{{ url_for('auth.login') }}" style="width:fit-content;margin-top:4px;">Login as customer →</a>
-        </article>
-        <article class="team-card" style="gap:12px;">
-            <span class="badge badge-neutral" style="width:fit-content;">Demo Lab</span>
-            <strong style="font-size:1.05rem;">Security walkthroughs</strong>
-            <p class="muted" style="margin:0;font-size:0.875rem;">
-                Step through live demonstrations of OWASP attacks and defences —
-                no login required for the public demo lab.
-            </p>
-            <a class="button secondary" href="{{ url_for('security.security_demo') }}" style="width:fit-content;margin-top:4px;">Open demo lab →</a>
+            <a class="button secondary" href="{{ url_for('auth.mfa_setup') }}" style="width:fit-content;margin-top:4px;">Set up MFA →</a>
         </article>
     </div>
 </section>

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}{{ brand_name }} — Account{% endblock %}
+
+{% block content %}
+<section class="dashboard-header">
+    <div>
+        <p class="eyebrow">Your account</p>
+        <h1>{{ user["username"] }}</h1>
+        <p class="muted" style="margin:0;font-size:0.875rem;">Account <code>{{ account_number }}</code></p>
+    </div>
+    <div class="button-group">
+        <a class="button" href="{{ url_for('auth.mfa_setup') }}">MFA settings →</a>
+        <a class="button secondary" href="{{ url_for('core.statement') }}">View statement</a>
+    </div>
+</section>
+
+<section class="stats-grid">
+    <article class="stat-card">
+        <span>Account number</span>
+        <strong class="small-stat" style="font-size:0.95rem;">{{ account_number }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Account type</span>
+        <strong><span class="badge badge-accent">{{ user["role"]|title }}</span></strong>
+    </article>
+    <article class="stat-card">
+        <span>MFA status</span>
+        <strong>
+            {% if user["totp_secret"] %}
+                <span class="badge badge-success">✓ Enabled</span>
+            {% else %}
+                <span class="badge badge-warning">Not set up</span>
+            {% endif %}
+        </strong>
+    </article>
+    <article class="stat-card">
+        <span>Last sign-in</span>
+        <strong class="small-stat">
+            {{ last_login.strftime("%d %b %Y, %H:%M") if last_login else "No record" }}
+        </strong>
+    </article>
+</section>
+
+<!-- Security settings -->
+<section class="content-panel">
+    <div class="panel-title">
+        <h2>Security</h2>
+    </div>
+
+    <div class="detail-grid" style="margin-bottom:20px;">
+        <span>Two-factor authentication</span>
+        <div style="display:flex;align-items:center;gap:12px;">
+            {% if user["totp_secret"] %}
+                <span class="event-pill success">✓ Active</span>
+                <span class="muted" style="font-size:0.82rem;">Your account is protected by TOTP MFA.</span>
+            {% else %}
+                <span class="event-pill warning">Not enabled</span>
+                <a href="{{ url_for('auth.mfa_setup') }}" style="color:var(--accent);font-weight:700;font-size:0.875rem;">Enable now →</a>
+            {% endif %}
+        </div>
+
+        <span>Account lock</span>
+        <div>
+            {% if user["locked_until"] %}
+                <span class="event-pill danger">Locked until {{ user["locked_until"] }}</span>
+            {% else %}
+                <span class="event-pill success">Active</span>
+            {% endif %}
+        </div>
+
+        <span>Failed login attempts</span>
+        <strong class="{{ 'amount-negative' if user['failed_login_count'] > 0 else '' }}">
+            {{ user["failed_login_count"] }} / 5
+        </strong>
+    </div>
+
+    {% if not user["totp_secret"] %}
+    <div style="background:var(--warning-soft);border:1.5px solid var(--warning);padding:14px 16px;margin-top:8px;">
+        <strong style="color:var(--warning);font-size:0.875rem;">⚠ Your account is not protected by MFA.</strong>
+        <p class="muted" style="margin:4px 0 0;font-size:0.82rem;">
+            Enable two-factor authentication to add an extra layer of security to your account.
+            <a href="{{ url_for('auth.mfa_setup') }}" style="color:var(--warning);font-weight:700;"> Set up MFA →</a>
+        </p>
+    </div>
+    {% endif %}
+</section>
+
+<!-- Recent account activity -->
+<section class="content-panel">
+    <div class="panel-title">
+        <h2>Recent account activity</h2>
+    </div>
+    {% if events %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Event</th>
+                    <th>IP address</th>
+                    <th>Detail</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ev in events %}
+                    <tr>
+                        <td style="color:var(--muted);font-size:0.82rem;white-space:nowrap;">
+                            {{ ev.created_at.strftime("%d %b %Y, %H:%M") }}
+                        </td>
+                        <td>
+                            <span class="event-pill
+                                {% if 'SUCCESS' in ev.event_type or 'CREATED' in ev.event_type or 'ENABLED' in ev.event_type %}success
+                                {% elif 'FAIL' in ev.event_type or 'LOCK' in ev.event_type or 'DENIED' in ev.event_type or 'BLOCK' in ev.event_type %}danger
+                                {% elif 'LOGOUT' in ev.event_type %}warning
+                                {% endif %}">
+                                {{ ev.event_type.replace("_", " ")|title }}
+                            </span>
+                        </td>
+                        <td style="color:var(--muted);font-size:0.82rem;">{{ ev.ip_address or "—" }}</td>
+                        <td style="font-size:0.82rem;">{{ ev.detail }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="muted">No account activity recorded yet.</p>
+    {% endif %}
+</section>
+{% endblock %}

@@ -5,8 +5,9 @@
 {% block content %}
 <section class="dashboard-header">
     <div>
-        <p class="eyebrow">Account dashboard</p>
+        <p class="eyebrow">Personal banking</p>
         <h1>Hello, {{ user["username"] }}</h1>
+        <p class="muted" style="margin:0;font-size:0.875rem;">Account <code>FLR-{{ "%04d"|format(user["id"]) }}-{{ (user["username"]|length * 1317) % 9000 + 1000 }}</code></p>
     </div>
     <div class="button-group">
         <a class="button" href="{{ url_for('transfer.transfer') }}">New transfer →</a>
@@ -28,7 +29,7 @@
         <strong data-countup="{{ '%.2f'|format(money_received_month) }}" data-prefix="$">${{ "%.2f"|format(money_received_month) }}</strong>
     </article>
     <article class="stat-card">
-        <span>MFA status</span>
+        <span>MFA</span>
         <strong>
             {% if user["totp_secret"] %}
                 <span class="badge badge-success">✓ Enabled</span>
@@ -38,15 +39,37 @@
         </strong>
     </article>
     <article class="stat-card">
-        <span>Last login</span>
-        <strong class="small-stat">{{ last_login }}</strong>
+        <span>Last sign-in</span>
+        <strong class="small-stat">{{ last_login.strftime("%d %b, %H:%M") if last_login and last_login != "This session" else "This session" }}</strong>
     </article>
     <article class="stat-card">
-        <span>Account type</span>
-        <strong><span class="badge badge-accent">{{ user["role"]|title }}</span></strong>
+        <span>Net this month</span>
+        {% set net = money_received_month - money_sent_month %}
+        <strong class="{{ 'amount-positive' if net >= 0 else 'amount-negative' }}">
+            {{ "+" if net >= 0 else "" }}${{ "%.2f"|format(net|abs) }}
+        </strong>
     </article>
 </section>
 
+<!-- Spending trend chart -->
+{% if monthly_data %}
+<section class="content-panel">
+    <div class="panel-title">
+        <h2>6-month spending overview</h2>
+        <span class="muted" style="font-size:0.82rem;">Sent vs received</span>
+    </div>
+    <div style="position:relative;height:220px;width:100%;margin-top:12px;">
+        <canvas id="spendingChart"></canvas>
+    </div>
+    <script>
+        const spendingLabels = [{% for m in monthly_data %}"{{ m.label }}",{% endfor %}];
+        const spendingSent = [{% for m in monthly_data %}{{ m.sent }},{% endfor %}];
+        const spendingReceived = [{% for m in monthly_data %}{{ m.received }},{% endfor %}];
+    </script>
+</section>
+{% endif %}
+
+<!-- Recent transactions -->
 <section class="content-panel">
     <div class="panel-title">
         <h2>Recent transactions</h2>
@@ -94,4 +117,85 @@
         <p class="muted">No transactions yet. <a href="{{ url_for('transfer.transfer') }}" style="color:var(--accent);font-weight:700;">Make your first transfer →</a></p>
     {% endif %}
 </section>
+
+<!-- Security activity -->
+{% if user_events %}
+<section class="content-panel">
+    <div class="panel-title">
+        <h2>Recent account activity</h2>
+        <a href="{{ url_for('core.profile') }}">View account →</a>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Event</th>
+                <th>IP address</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ev in user_events %}
+                <tr>
+                    <td style="color:var(--muted);font-size:0.82rem;">{{ ev.created_at.strftime("%d %b, %H:%M") }}</td>
+                    <td>
+                        <span class="event-pill
+                            {% if 'SUCCESS' in ev.event_type or 'CREATED' in ev.event_type %}success
+                            {% elif 'FAIL' in ev.event_type or 'LOCK' in ev.event_type or 'DENIED' in ev.event_type %}danger
+                            {% elif 'LOGOUT' in ev.event_type %}warning
+                            {% else %}{% endif %}">
+                            {{ ev.event_type.replace("_", " ")|title }}
+                        </span>
+                    </td>
+                    <td style="color:var(--muted);font-size:0.82rem;">{{ ev.ip_address or "—" }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#f0f0f0' : '#111111';
+    const gridColor = isDark ? '#2a2a2a' : '#e8e8e3';
+
+    Chart.defaults.color = textColor;
+    Chart.defaults.font.family = "'Inter', Arial, sans-serif";
+
+    if (typeof spendingLabels !== 'undefined') {
+        new Chart(document.getElementById('spendingChart'), {
+            type: 'bar',
+            data: {
+                labels: spendingLabels,
+                datasets: [
+                    {
+                        label: 'Sent',
+                        data: spendingSent,
+                        backgroundColor: 'rgba(190,18,60,0.75)',
+                        borderRadius: 2,
+                    },
+                    {
+                        label: 'Received',
+                        data: spendingReceived,
+                        backgroundColor: 'rgba(21,128,61,0.75)',
+                        borderRadius: 2,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { grid: { color: gridColor }, beginAtZero: true,
+                         ticks: { callback: v => '$' + v.toLocaleString() } }
+                },
+                plugins: { legend: { position: 'top' } }
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

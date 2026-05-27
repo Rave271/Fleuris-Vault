@@ -66,11 +66,19 @@ def transfer():
                 message = error
                 message_type = "error"
             else:
-                flash(
-                    f"Transfer to {recipient.username} completed. Reference {transaction.reference_code}.",
-                    "success",
-                )
-                return redirect(url_for("core.statement"))
+                # Reload the user to get updated balance
+                from ..extensions import db
+                db.session.refresh(user)
+                receipt = {
+                    "reference_code": transaction.reference_code,
+                    "from_user": user.username,
+                    "to_user": recipient.username,
+                    "amount": float(transaction.amount),
+                    "description": transaction.description,
+                    "timestamp": transaction.timestamp,
+                    "balance_after": float(user.balance),
+                }
+                return render_template("receipt.html", receipt=receipt)
 
     recipients = User.query.filter(User.id != user.id, User.role == "customer").order_by(User.username).all()
     return render_template(

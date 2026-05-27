@@ -1,6 +1,8 @@
+import csv
+import io
 from datetime import datetime
 
-from flask import Blueprint, current_app, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, redirect, render_template, request, url_for, Response
 from sqlalchemy import func
 from sqlalchemy.orm import aliased
 
@@ -102,6 +104,51 @@ def dashboard():
         for row in transactions
     ]
 
+    # Build monthly spending for the last 6 months for chart (stdlib only)
+    import calendar as _cal
+    monthly_data = []
+    now = datetime.utcnow()
+    for i in range(5, -1, -1):
+        # subtract i months
+        month = now.month - i
+        year = now.year
+        while month <= 0:
+            month += 12
+            year -= 1
+        _, last_day = _cal.monthrange(year, month)
+        month_start = datetime(year, month, 1)
+        # month_end: first day of next month
+        if month == 12:
+            month_end = datetime(year + 1, 1, 1)
+        else:
+            month_end = datetime(year, month + 1, 1)
+        sent = (Transaction.query
+                .filter(Transaction.from_user == user.id,
+                        Transaction.timestamp >= month_start,
+                        Transaction.timestamp < month_end)
+                .with_entities(func.coalesce(func.sum(Transaction.amount), 0))
+                .scalar())
+        received = (Transaction.query
+                    .filter(Transaction.to_user == user.id,
+                            Transaction.timestamp >= month_start,
+                            Transaction.timestamp < month_end)
+                    .with_entities(func.coalesce(func.sum(Transaction.amount), 0))
+                    .scalar())
+        monthly_data.append({
+            "label": month_start.strftime("%b"),
+            "sent": float(sent or 0),
+            "received": float(received or 0),
+        })
+
+    # Recent security events for this user
+    user_events = (
+        SecurityEvent.query
+        .filter_by(user_id=user.id)
+        .order_by(SecurityEvent.created_at.desc())
+        .limit(5)
+        .all()
+    )
+
     return render_template(
         "dashboard.html",
         user=user,
@@ -109,6 +156,8 @@ def dashboard():
         money_sent_month=float(money_sent_month or 0),
         money_received_month=float(money_received_month or 0),
         last_login=last_login.created_at if last_login else "This session",
+        monthly_data=monthly_data,
+        user_events=user_events,
     )
 
 
@@ -199,4 +248,99 @@ def statement(user_id=None):
         account=account,
         requested_user_id=requested_user_id,
         filters={"date_from": date_from, "date_to": date_to, "direction": direction},
+        total_sent=sum(r["amount"] for r in transaction_rows if r["from_user_id"] == requested_user_id),
+        total_received=sum(r["amount"] for r in transaction_rows if r["to_user_id"] == requested_user_id),
+    )
+
+
+@core_bp.route("/statement/download")
+@core_bp.route("/statement/<int:user_id>/download")
+def statement_download(user_id=None):
+    user = login_required()
+    if not user:
+        return redirect(url_for("auth.login"))
+
+    requested_user_id = user_id or user.id
+    if requested_user_id != user.id and user.role != "admin":
+        return render_template("error.html", title="Access denied",
+                               message="You do not have permission to perform that action."), 403
+
+    account = User.query.filter_by(id=requested_user_id, role="customer").first()
+    if not account:
+        return render_template("error.html", title="Not found",
+                               message="Account not found."), 404
+
+    sender = aliased(User)
+    recipient = aliased(User)
+    rows = (
+        Transaction.query
+        .join(sender, Transaction.from_user == sender.id)
+        .join(recipient, Transaction.to_user == recipient.id)
+        .filter((Transaction.from_user == requested_user_id) | (Transaction.to_user == requested_user_id))
+        .order_by(Transaction.timestamp.desc())
+        .with_entities(
+            Transaction.reference_code,
+            Transaction.description,
+            Transaction.amount,
+            Transaction.status,
+            Transaction.timestamp,
+            Transaction.from_user.label("from_user_id"),
+            Transaction.to_user.label("to_user_id"),
+            sender.username.label("from_user"),
+            recipient.username.label("to_user"),
+        )
+        .all()
+    )
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Date", "Reference", "Description", "From", "To", "Amount", "Direction", "Status"])
+    for r in rows:
+        direction = "Credit" if r.to_user_id == requested_user_id else "Debit"
+        writer.writerow([
+            r.timestamp.strftime("%Y-%m-%d %H:%M") if r.timestamp else "",
+            r.reference_code,
+            r.description or "",
+            r.from_user,
+            r.to_user,
+            f"{float(r.amount):.2f}",
+            direction,
+            r.status,
+        ])
+
+    output.seek(0)
+    filename = f"fleuris-statement-{account.username}-{datetime.utcnow().strftime('%Y%m%d')}.csv"
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+
+
+@core_bp.route("/profile")
+def profile():
+    user = login_required()
+    if not user:
+        return redirect(url_for("auth.login"))
+
+    events = (
+        SecurityEvent.query
+        .filter_by(user_id=user.id)
+        .order_by(SecurityEvent.created_at.desc())
+        .limit(10)
+        .all()
+    )
+    last_login = (
+        SecurityEvent.query
+        .filter_by(user_id=user.id, event_type="LOGIN_SUCCESS")
+        .order_by(SecurityEvent.created_at.desc())
+        .first()
+    )
+    account_number = f"FLR-{user.id:04d}-{hash(user.username) % 9000 + 1000}"
+    return render_template(
+        "profile.html",
+        user=user,
+        events=events,
+        last_login=last_login.created_at if last_login else None,
+        account_number=account_number,
     )

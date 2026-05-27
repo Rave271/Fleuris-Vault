@@ -30,20 +30,16 @@
                     <a href="{{ url_for('transfer.transfer') }}" class="{{ 'active' if path.startswith('/transfer') }}">Transfer</a>
                     <a href="{{ url_for('core.statement') }}" class="{{ 'active' if path.startswith('/statement') }}">Statement</a>
                 {% endif %}
-                <a href="{{ url_for('security.security_demo') }}" class="{{ 'active' if path.startswith('/security-demo') }}">Demo Lab</a>
-                <a href="{{ url_for('auth.mfa_setup') }}" class="{{ 'active' if path == '/mfa-setup' }}">MFA</a>
                 {% if current_user.role == "admin" %}
                     <a href="{{ url_for('admin.users') }}" class="{{ 'active' if path.startswith('/users') or path.startswith('/admin/users') }}">Customers</a>
                     <a href="{{ url_for('security.security_center') }}" class="{{ 'active' if path == '/security' }}">Security</a>
                     <a href="{{ url_for('analytics.analytics_dashboard') }}" class="{{ 'active' if path == '/analytics' }}">Analytics</a>
-                    <a href="{{ url_for('traffic.traffic_generator') }}" class="{{ 'active' if path == '/traffic-generator' }}">Traffic</a>
-                    <a href="{{ url_for('security.demo_controls') }}" class="{{ 'active' if path == '/demo-controls' }}">Controls</a>
                 {% endif %}
-                <a href="{{ url_for('auth.logout') }}">Logout</a>
+                <a href="{{ url_for('core.profile') }}" class="{{ 'active' if path == '/profile' }}">Account</a>
+                <a href="{{ url_for('auth.logout') }}">Sign out</a>
             {% else %}
                 <a href="{{ url_for('core.index') }}" class="{{ 'active' if path == '/' }}">Home</a>
-                <a href="{{ url_for('security.security_demo') }}">Demo Lab</a>
-                <a class="nav-cta" href="{{ url_for('auth.login') }}">Login</a>
+                <a class="nav-cta" href="{{ url_for('auth.login') }}">Sign in</a>
             {% endif %}
             <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
         </nav>
@@ -64,20 +60,16 @@
                 <a href="{{ url_for('transfer.transfer') }}" class="{{ 'active' if path.startswith('/transfer') }}">Transfer</a>
                 <a href="{{ url_for('core.statement') }}" class="{{ 'active' if path.startswith('/statement') }}">Statement</a>
             {% endif %}
-            <a href="{{ url_for('security.security_demo') }}">Demo Lab</a>
-            <a href="{{ url_for('auth.mfa_setup') }}">MFA Setup</a>
             {% if current_user.role == "admin" %}
                 <a href="{{ url_for('admin.users') }}">Customers</a>
                 <a href="{{ url_for('security.security_center') }}">Security</a>
                 <a href="{{ url_for('analytics.analytics_dashboard') }}">Analytics</a>
-                <a href="{{ url_for('traffic.traffic_generator') }}">Traffic Generator</a>
-                <a href="{{ url_for('security.demo_controls') }}">Demo Controls</a>
             {% endif %}
-            <a href="{{ url_for('auth.logout') }}">Logout</a>
+            <a href="{{ url_for('core.profile') }}">Account</a>
+            <a href="{{ url_for('auth.logout') }}">Sign out</a>
         {% else %}
             <a href="{{ url_for('core.index') }}">Home</a>
-            <a href="{{ url_for('security.security_demo') }}">Demo Lab</a>
-            <a href="{{ url_for('auth.login') }}">Login →</a>
+            <a href="{{ url_for('auth.login') }}">Sign in →</a>
         {% endif %}
     </nav>
 
@@ -98,8 +90,8 @@
     </main>
 
     <footer class="site-footer">
-        <span>© 2026 {{ brand_name }}</span>
-        <span>Demo fintech portal — OWASP-hardened · PySpark analytics · ELK-ready logging</span>
+        <span>© 2026 {{ brand_name }}. All rights reserved.</span>
+        <span>Member FSCS protected · Authorised by the FCA · All transfers encrypted in transit</span>
     </footer>
 
     <script>

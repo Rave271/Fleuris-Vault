@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}{{ brand_name }} — Transfer Receipt{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <div>
+        <p class="eyebrow">Transfer complete</p>
+        <h1>Payment confirmed</h1>
+        <p class="muted">Your transfer has been processed. Keep this reference for your records.</p>
+    </div>
+    <div class="button-group">
+        <a class="button secondary" href="{{ url_for('core.statement') }}">View statement</a>
+        <a class="button secondary" href="{{ url_for('transfer.transfer') }}">New transfer</a>
+    </div>
+</section>
+
+<section class="content-panel" style="max-width:560px;">
+    <div class="panel-title">
+        <h2>Receipt</h2>
+        <span class="event-pill success">✓ Completed</span>
+    </div>
+
+    <p class="review-amount" style="margin:20px 0;">${{ "%.2f"|format(receipt.amount) }}</p>
+
+    <div class="detail-grid">
+        <span>Reference</span>
+        <strong><code>{{ receipt.reference_code }}</code></strong>
+
+        <span>From</span>
+        <strong>{{ receipt.from_user }}</strong>
+
+        <span>To</span>
+        <strong>{{ receipt.to_user }}</strong>
+
+        <span>Description</span>
+        <strong>{{ receipt.description or "Transfer" }}</strong>
+
+        <span>Date & time</span>
+        <strong>{{ receipt.timestamp.strftime("%d %B %Y, %H:%M UTC") if receipt.timestamp else "—" }}</strong>
+
+        <span>New balance</span>
+        <strong class="{{ 'amount-positive' if receipt.balance_after > 0 else 'amount-negative' }}">${{ "%.2f"|format(receipt.balance_after) }}</strong>
+    </div>
+
+    <div style="margin-top:24px;padding-top:16px;border-top:1.5px solid var(--line-soft);">
+        <p class="muted" style="font-size:0.82rem;margin:0;">
+            This transfer was processed by Fleuris Vault and is protected by end-to-end encryption.
+            If you did not authorise this transfer, contact support immediately.
+        </p>
+    </div>
+</section>
+{% endblock %}

@@ -1,12 +1,43 @@
 {% extends "base.html" %}
 
-{% block title %}{{ brand_name }} - Statement{% endblock %}
+{% block title %}{{ brand_name }} — Statement{% endblock %}
 
 {% block content %}
 <section class="page-heading">
-    <p class="eyebrow">Account statement</p>
-    <h1>{{ account["username"] }} - Account {{ account["id"] }}</h1>
+    <div>
+        <p class="eyebrow">Account statement</p>
+        <h1>{{ account["username"] }}</h1>
+        <p class="muted" style="margin:0;font-size:0.875rem;">Account <code>FLR-{{ "%04d"|format(account["id"]) }}-{{ (account["username"]|length * 1317) % 9000 + 1000 }}</code></p>
+    </div>
+    <div class="button-group" style="margin-top:0;">
+        {% if current_user and current_user["role"] == "admin" %}
+            <a class="button secondary" href="{{ url_for('core.statement_download', user_id=account['id']) }}">↓ Export CSV</a>
+        {% else %}
+            <a class="button secondary" href="{{ url_for('core.statement_download') }}">↓ Export CSV</a>
+        {% endif %}
+    </div>
 </section>
+
+<!-- Summary bar -->
+{% if transactions %}
+<section class="stats-grid" style="margin-bottom:0;">
+    <article class="stat-card">
+        <span>Total received</span>
+        <strong class="amount-positive">+${{ "%.2f"|format(total_received) }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Total sent</span>
+        <strong class="amount-negative">-${{ "%.2f"|format(total_sent) }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Net movement</span>
+        {% set net = total_received - total_sent %}
+        <strong class="{{ 'amount-positive' if net >= 0 else 'amount-negative' }}">
+            {{ "+" if net >= 0 else "" }}${{ "%.2f"|format(net|abs) }}
+        </strong>
+    </article>
+</section>
+{% endif %}
 
 <form class="filter-bar" method="GET">
     <label>
@@ -34,32 +65,38 @@
         <table>
             <thead>
                 <tr>
+                    <th>Date</th>
                     <th>Reference</th>
                     <th>Description</th>
                     <th>Direction</th>
                     <th>Amount</th>
                     <th>Status</th>
-                    <th>Timestamp</th>
                 </tr>
             </thead>
             <tbody>
                 {% for transaction in transactions %}
                     {% set incoming = transaction["to_user_id"] == requested_user_id %}
                     <tr>
+                        <td style="color:var(--muted);font-size:0.82rem;white-space:nowrap;">
+                            {{ transaction["timestamp"].strftime("%d %b %Y, %H:%M") if transaction["timestamp"] else "—" }}
+                        </td>
                         <td><code>{{ transaction["reference_code"] }}</code></td>
-                        <td>{{ transaction["description"] or "Customer transfer" }}</td>
-                        <td>{{ "Received from " ~ transaction["from_user"] if incoming else "Sent to " ~ transaction["to_user"] }}</td>
+                        <td>{{ transaction["description"] or "Transfer" }}</td>
+                        <td>
+                            <span class="tx-direction {{ 'received' if incoming else 'sent' }}">
+                                {{ "↓ From " ~ transaction["from_user"] if incoming else "↑ To " ~ transaction["to_user"] }}
+                            </span>
+                        </td>
                         <td class="{{ 'amount-positive' if incoming else 'amount-negative' }}">
                             {{ "+" if incoming else "-" }}${{ "%.2f"|format(transaction["amount"]) }}
                         </td>
-                        <td><span class="event-pill">{{ transaction["status"]|title }}</span></td>
-                        <td>{{ transaction["timestamp"] }}</td>
+                        <td><span class="event-pill {{ 'success' if transaction['status'] == 'completed' else 'warning' }}">{{ transaction["status"]|title }}</span></td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
     {% else %}
-        <p class="muted">No statement activity is available for this account.</p>
+        <p class="muted">No transactions match your filters.</p>
     {% endif %}
 </section>
 {% endblock %}
